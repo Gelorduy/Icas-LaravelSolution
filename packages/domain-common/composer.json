@@ -1,0 +1,5 @@
+{
+  "name": "icas/domain-common",
+  "type": "library",
+  "autoload": { "psr-4": { "Icas\\\\Domain\\\\": "src/" } }
+}
