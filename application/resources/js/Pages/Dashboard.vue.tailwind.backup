@@ -1,0 +1,496 @@
+<script setup>
+import { ref } from 'vue';
+import { Link, usePage, router } from '@inertiajs/vue3';
+import AppLayout from '@/Layouts/AppLayout.vue';
+
+const sidebarCollapsed = ref(false);
+const showUserMenu = ref(false);
+const showSiteDropdown = ref(false);
+const activeMenuItem = ref('dashboard');
+const expandedMenus = ref({});
+const $page = usePage();
+
+// Sample site data - will be replaced with actual data later
+const selectedSite = ref('Monroe County Jail');
+const sites = ref([
+  'Monroe County Jail',
+  'City Center Facility',
+  'North Campus',
+]);
+
+const toggleSidebar = () => {
+  sidebarCollapsed.value = !sidebarCollapsed.value;
+  if (sidebarCollapsed.value) {
+    expandedMenus.value = {};
+  }
+};
+
+const toggleSubmenu = (menuKey) => {
+  if (!sidebarCollapsed.value) {
+    expandedMenus.value[menuKey] = !expandedMenus.value[menuKey];
+  }
+};
+
+const selectSite = (site) => {
+  selectedSite.value = site;
+  showSiteDropdown.value = false;
+};
+
+const logout = () => {
+  router.post(route('logout'));
+};
+
+// Menu items with icons and optional submenus
+const menuItems = [
+  {
+    key: 'dashboard',
+    label: 'Dashboard',
+    icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
+    route: 'dashboard',
+  },
+  {
+    key: 'map',
+    label: 'Map Visualization',
+    icon: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 9',
+  },
+  {
+    key: 'alerts',
+    label: 'Alerts',
+    icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
+    submenu: [
+      { key: 'alerts-active', label: 'Active Alerts' },
+      { key: 'alerts-history', label: 'Alert History' },
+      { key: 'alerts-config', label: 'Alert Configuration' },
+    ],
+  },
+  {
+    key: 'sensors',
+    label: 'Sensors',
+    icon: 'M9 19V6a2 2 0 012-2h4a2 2 0 012 2v13m-6 0a2 2 0 002 2h4a2 2 0 002-2m0 0V9a2 2 0 00-2-2h-4a2 2 0 00-2 2v10z',
+    submenu: [
+      { key: 'sensors-status', label: 'Sensor Status' },
+      { key: 'sensors-manage', label: 'Manage Sensors' },
+    ],
+  },
+  {
+    key: 'cameras',
+    label: 'Cameras',
+    icon: 'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z',
+    submenu: [
+      { key: 'cameras-live', label: 'Live View' },
+      { key: 'cameras-recordings', label: 'Recordings' },
+    ],
+  },
+  {
+    key: 'access',
+    label: 'Access Control',
+    icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z',
+  },
+  {
+    key: 'reports',
+    label: 'Reports',
+    icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+    submenu: [
+      { key: 'reports-daily', label: 'Daily Reports' },
+      { key: 'reports-monthly', label: 'Monthly Reports' },
+      { key: 'reports-custom', label: 'Custom Reports' },
+    ],
+  },
+  {
+    key: 'users',
+    label: 'User Management',
+    icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
+  },
+  {
+    key: 'devices',
+    label: 'Devices',
+    icon: 'M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z',
+  },
+  {
+    key: 'logs',
+    label: 'System Logs',
+    icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253',
+  },
+  {
+    key: 'settings',
+    label: 'Settings',
+    icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
+    submenu: [
+      { key: 'settings-general', label: 'General' },
+      { key: 'settings-notifications', label: 'Notifications' },
+      { key: 'settings-security', label: 'Security' },
+    ],
+  },
+];
+</script>
+
+<template>
+  <AppLayout title="Dashboard">
+    <div class="min-h-screen bg-gray-100 flex flex-col">
+      <!-- Top Navigation Bar -->
+      <nav class="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg sticky top-0 z-50">
+        <div class="flex items-center justify-between px-6 py-3">
+          <!-- Left: Logo and Site Selector -->
+          <div class="flex items-center space-x-6">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                <span class="text-blue-700 font-bold text-lg">IC</span>
+              </div>
+              <span class="text-2xl font-bold">ICAS</span>
+            </div>
+
+            <!-- Site Dropdown -->
+            <div class="relative">
+              <button
+                @click="showSiteDropdown = !showSiteDropdown"
+                class="flex items-center space-x-2 bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded-lg transition-colors"
+              >
+                <span class="text-sm font-semibold">Site:</span>
+                <span class="text-sm">{{ selectedSite }}</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              <!-- Site Dropdown Menu -->
+              <div
+                v-if="showSiteDropdown"
+                class="absolute left-0 mt-2 w-64 bg-white text-gray-700 rounded-lg shadow-xl py-2 z-50"
+              >
+                <button
+                  v-for="site in sites"
+                  :key="site"
+                  @click="selectSite(site)"
+                  class="w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors"
+                  :class="{ 'bg-blue-100 font-semibold': site === selectedSite }"
+                >
+                  {{ site }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Action Icons and User Menu -->
+          <div class="flex items-center space-x-4">
+            <!-- Queue Icon -->
+            <button class="hover:bg-blue-700 p-2 rounded-full transition-colors" title="Queue" aria-label="Queue">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
+            <!-- Help Icon -->
+            <button class="hover:bg-blue-700 p-2 rounded-full transition-colors" title="Help" aria-label="Help">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+
+            <!-- Notifications Icon -->
+            <button class="hover:bg-blue-700 p-2 rounded-full transition-colors relative" title="Notifications" aria-label="Notifications">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+
+            <!-- User Menu Dropdown -->
+            <div class="relative">
+              <button
+                @click="showUserMenu = !showUserMenu"
+                class="flex items-center space-x-2 hover:bg-blue-700 px-3 py-2 rounded-lg transition-colors"
+              >
+                <div class="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-blue-800 font-semibold">
+                  {{ $page.props.auth.user.name.charAt(0).toUpperCase() }}
+                </div>
+                <span class="text-sm font-medium">{{ $page.props.auth.user.name }}</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              <!-- User Dropdown Menu -->
+              <div
+                v-if="showUserMenu"
+                class="absolute right-0 mt-2 w-48 bg-white text-gray-700 rounded-lg shadow-xl py-2 z-50"
+              >
+                <Link
+                  :href="route('profile.show')"
+                  class="block px-4 py-2 hover:bg-gray-100 transition-colors"
+                >
+                  Profile
+                </Link>
+                <button
+                  @click="logout"
+                  class="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors border-t"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Main Content Area with Collapsible Sidebar -->
+      <div class="flex flex-1 overflow-hidden">
+        <!-- Collapsible Lateral Sidebar Menu -->
+        <aside
+          class="bg-gray-900 text-white shadow-lg overflow-y-auto transition-all duration-300 flex-shrink-0"
+          :class="sidebarCollapsed ? 'w-16' : 'w-64'"
+        >
+          <!-- Toggle Button -->
+          <div class="p-4 border-b border-gray-700 flex justify-end">
+            <button
+              @click="toggleSidebar"
+              class="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+              :title="sidebarCollapsed ? 'Expand Menu' : 'Collapse Menu'"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  v-if="!sidebarCollapsed"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+                />
+                <path
+                  v-else
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 5l7 7-7 7M5 5l7 7-7 7"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <nav class="p-2 space-y-1">
+            <!-- Menu Items -->
+            <div v-for="item in menuItems" :key="item.key" class="relative">
+              <!-- Main Menu Item -->
+              <button
+                v-if="item.route"
+                @click="router.visit(route(item.route))"
+                class="flex items-center w-full px-3 py-3 rounded-lg transition-colors group"
+                :class="
+                  route().current(item.route)
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-300 hover:bg-gray-800'
+                "
+                :title="sidebarCollapsed ? item.label : ''"
+              >
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="item.icon" />
+                </svg>
+                <span v-if="!sidebarCollapsed" class="ml-3 text-sm">{{ item.label }}</span>
+              </button>
+
+              <button
+                v-else
+                @click="item.submenu ? toggleSubmenu(item.key) : (activeMenuItem = item.key)"
+                class="flex items-center justify-between w-full px-3 py-3 rounded-lg transition-colors group"
+                :class="
+                  activeMenuItem === item.key
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-300 hover:bg-gray-800'
+                "
+                :title="sidebarCollapsed ? item.label : ''"
+              >
+                <div class="flex items-center flex-1 min-w-0">
+                  <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="item.icon" />
+                  </svg>
+                  <span v-if="!sidebarCollapsed" class="ml-3 text-sm truncate">{{ item.label }}</span>
+                </div>
+                <svg
+                  v-if="item.submenu && !sidebarCollapsed"
+                  class="w-4 h-4 flex-shrink-0 transition-transform"
+                  :class="{ 'rotate-180': expandedMenus[item.key] }"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              <!-- Submenu -->
+              <div
+                v-if="item.submenu && expandedMenus[item.key] && !sidebarCollapsed"
+                class="ml-8 mt-1 space-y-1"
+              >
+                <button
+                  v-for="subitem in item.submenu"
+                  :key="subitem.key"
+                  @click="activeMenuItem = subitem.key"
+                  class="flex items-center w-full px-3 py-2 rounded-lg text-sm transition-colors"
+                  :class="
+                    activeMenuItem === subitem.key
+                      ? 'bg-blue-700 text-white'
+                      : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  "
+                >
+                  {{ subitem.label }}
+                </button>
+              </div>
+
+              <!-- Collapsed Submenu (Popover) -->
+              <div
+                v-if="item.submenu && sidebarCollapsed"
+                class="absolute left-full top-0 ml-2 hidden group-hover:block z-50"
+              >
+                <div class="bg-gray-800 rounded-lg shadow-xl py-2 min-w-48">
+                  <div class="px-4 py-2 text-xs font-semibold text-gray-400 border-b border-gray-700">
+                    {{ item.label }}
+                  </div>
+                  <button
+                    v-for="subitem in item.submenu"
+                    :key="subitem.key"
+                    @click="activeMenuItem = subitem.key"
+                    class="w-full text-left px-4 py-2 text-sm hover:bg-gray-700 transition-colors"
+                    :class="
+                      activeMenuItem === subitem.key ? 'bg-blue-700 text-white' : 'text-gray-300'
+                    "
+                  >
+                    {{ subitem.label }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-auto bg-gray-100">
+          <div class="p-8">
+            <!-- Dashboard Overview (default) -->
+            <div v-if="activeMenuItem === 'dashboard'" class="space-y-6">
+              <h1 class="text-3xl font-bold text-gray-800">Dashboard</h1>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Stat Cards -->
+                <div class="bg-white rounded-lg shadow p-6">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-gray-500 text-sm font-medium">Active Sensors</p>
+                      <p class="text-2xl font-bold text-gray-800 mt-2">24</p>
+                    </div>
+                    <div class="bg-blue-100 rounded-full p-3">
+                      <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6a2 2 0 012-2h4a2 2 0 012 2v13m-6 0a2 2 0 002 2h4a2 2 0 002-2m0 0V9a2 2 0 00-2-2h-4a2 2 0 00-2 2v10z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-gray-500 text-sm font-medium">Active Alerts</p>
+                      <p class="text-2xl font-bold text-gray-800 mt-2">3</p>
+                    </div>
+                    <div class="bg-red-100 rounded-full p-3">
+                      <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-gray-500 text-sm font-medium">System Status</p>
+                      <p class="text-2xl font-bold text-green-600 mt-2">Online</p>
+                    </div>
+                    <div class="bg-green-100 rounded-full p-3">
+                      <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-gray-500 text-sm font-medium">Connected Devices</p>
+                      <p class="text-2xl font-bold text-gray-800 mt-2">32</p>
+                    </div>
+                    <div class="bg-purple-100 rounded-full p-3">
+                      <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Actions -->
+              <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <button
+                    @click="activeMenuItem = 'map'"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                  >
+                    View Map
+                  </button>
+                  <button
+                    @click="activeMenuItem = 'alerts'"
+                    class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                  >
+                    Check Alerts
+                  </button>
+                  <button
+                    @click="activeMenuItem = 'devices'"
+                    class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                  >
+                    Manage Devices
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Map View -->
+            <div v-else-if="activeMenuItem === 'map'" class="space-y-6">
+              <h1 class="text-3xl font-bold text-gray-800">Map Visualization</h1>
+              <div class="bg-white rounded-lg shadow-lg p-6 min-h-96">
+                <div class="bg-gray-200 w-full h-96 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-400">
+                  <div class="text-center">
+                    <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 9" />
+                    </svg>
+                    <p class="text-gray-500 text-lg font-semibold">Map Canvas Area</p>
+                    <p class="text-gray-400 text-sm mt-2">Interactive map will be displayed here</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Other Views -->
+            <div v-else class="space-y-6">
+              <h1 class="text-3xl font-bold text-gray-800 capitalize">{{ activeMenuItem.replace(/-/g, ' ') }}</h1>
+              <div class="bg-white rounded-lg shadow-lg p-6">
+                <p class="text-gray-600">Content for {{ activeMenuItem }} will be implemented here</p>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </AppLayout>
+</template>
+
+<style scoped>
+/* Smooth transitions */
+button,
+a {
+  transition: all 0.3s ease;
+}
+
+/* Rotate animation for chevrons */
+.rotate-180 {
+  transform: rotate(180deg);
+}
+</style>

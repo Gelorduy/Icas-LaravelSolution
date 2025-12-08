@@ -1,0 +1,30 @@
+version: "3.8"
+services:
+  icas-app:
+    build: ../application
+    volumes:
+      - ../application:/var/www/html:cached
+    environment:
+      APP_ENV: local
+      DB_HOST: mysql
+      REDIS_HOST: redis
+    ports:
+      - "8000:8000"
+  icas-comm:
+    build: ../communications
+    volumes:
+      - ../communications:/var/www/comm:cached
+    environment:
+      APP_ENV: local
+      REDIS_HOST: redis
+    ports:
+      - "6001:6001"
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server","--appendonly","yes"]
+  mysql:
+    image: mariadb:10.11
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"

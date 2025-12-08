@@ -1,0 +1,351 @@
+<script setup>
+import { ref } from 'vue';
+import { Link, usePage, router } from '@inertiajs/vue3';
+import AppLayout from '@/Layouts/AppLayout.vue';
+
+const showUserMenu = ref(false);
+const activeMenuItem = ref('dashboard');
+const $page = usePage();
+
+const logout = () => {
+  router.post(route('logout'));
+};
+</script>
+
+<template>
+  <AppLayout title="Dashboard">
+    <template #header>
+      <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        ICAS Dashboard
+      </h2>
+    </template>
+
+    <div class="min-h-screen bg-gray-100 flex flex-col">
+      <!-- Upper Navigation Bar -->
+      <nav class="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg sticky top-0 z-40">
+        <div class="flex items-center justify-between px-6 py-4">
+          <!-- Logo/Brand -->
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+              <span class="text-blue-700 font-bold text-lg">IC</span>
+            </div>
+            <span class="text-2xl font-bold">ICAS</span>
+          </div>
+
+          <!-- Top Menu Icons -->
+          <div class="flex items-center space-x-6">
+            <!-- Notifications Icon -->
+            <button class="hover:bg-blue-700 p-2 rounded-full transition-colors" aria-label="Notifications">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+            </button>
+
+            <!-- Help Icon -->
+            <button class="hover:bg-blue-700 p-2 rounded-full transition-colors" aria-label="Help">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+
+            <!-- Info Icon -->
+            <button class="hover:bg-blue-700 p-2 rounded-full transition-colors" aria-label="Information">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+
+            <!-- User Menu Dropdown -->
+            <div class="relative">
+              <button
+                @click="showUserMenu = !showUserMenu"
+                class="flex items-center space-x-2 hover:bg-blue-700 px-3 py-2 rounded-lg transition-colors"
+              >
+                <div class="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-blue-800 font-semibold">
+                  {{ $page.props.auth.user.name.charAt(0).toUpperCase() }}
+                </div>
+                <span class="text-sm font-medium">{{ $page.props.auth.user.name }}</span>
+              </button>
+
+              <!-- User Dropdown Menu -->
+              <div
+                v-if="showUserMenu"
+                class="absolute right-0 mt-2 w-48 bg-white text-gray-700 rounded-lg shadow-xl py-2 z-50"
+              >
+                <Link
+                  :href="route('profile.show')"
+                  class="block px-4 py-2 hover:bg-gray-100 transition-colors"
+                >
+                  Profile
+                </Link>
+                <button
+                  @click="logout"
+                  class="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors border-t"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Main Content Area with Sidebar -->
+      <div class="flex flex-1 overflow-hidden">
+        <!-- Lateral Sidebar Menu -->
+        <aside class="w-64 bg-gray-900 text-white shadow-lg overflow-y-auto">
+          <nav class="p-4 space-y-2">
+            <div class="mb-6 px-4 py-2">
+              <h3 class="text-xs uppercase tracking-widest font-bold text-gray-400">Navigation</h3>
+            </div>
+
+            <!-- Dashboard Menu Item -->
+            <Link
+              :href="route('dashboard')"
+              :active="route().current('dashboard')"
+              class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors"
+              :class="
+                route().current('dashboard')
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-300 hover:bg-gray-800'
+              "
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 11l4-4m-4 4l-4-4m9-5l4-4m-4 4l4 4" />
+              </svg>
+              <span>Dashboard</span>
+            </Link>
+
+            <!-- Map Visualization Menu Item (Icon-based) -->
+            <button
+              @click="activeMenuItem = 'map'"
+              class="flex items-center space-x-3 w-full px-4 py-3 rounded-lg transition-colors"
+              :class="
+                activeMenuItem === 'map'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-300 hover:bg-gray-800'
+              "
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 9" />
+              </svg>
+              <span>Map</span>
+            </button>
+
+            <!-- Alerts Menu Item -->
+            <button
+              @click="activeMenuItem = 'alerts'"
+              class="flex items-center space-x-3 w-full px-4 py-3 rounded-lg transition-colors"
+              :class="
+                activeMenuItem === 'alerts'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-300 hover:bg-gray-800'
+              "
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Alerts</span>
+            </button>
+
+            <!-- Sensors Menu Item -->
+            <button
+              @click="activeMenuItem = 'sensors'"
+              class="flex items-center space-x-3 w-full px-4 py-3 rounded-lg transition-colors"
+              :class="
+                activeMenuItem === 'sensors'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-300 hover:bg-gray-800'
+              "
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6a2 2 0 012-2h4a2 2 0 012 2v13m-6 0a2 2 0 002 2h4a2 2 0 002-2m0 0V9a2 2 0 00-2-2h-4a2 2 0 00-2 2v10z" />
+              </svg>
+              <span>Sensors</span>
+            </button>
+
+            <div class="my-6 border-t border-gray-700"></div>
+
+            <div class="mb-4 px-4 py-2">
+              <h3 class="text-xs uppercase tracking-widest font-bold text-gray-400">System</h3>
+            </div>
+
+            <!-- Settings Menu Item -->
+            <Link
+              :href="route('profile.show')"
+              class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span>Settings</span>
+            </Link>
+          </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-auto">
+          <div class="p-8">
+            <!-- Content based on selected menu item -->
+            <div v-if="activeMenuItem === 'map'" class="space-y-6">
+              <h1 class="text-3xl font-bold text-gray-800">Map View</h1>
+              <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <!-- Map Canvas -->
+                <div class="lg:col-span-3 bg-white rounded-lg shadow-lg p-6 min-h-96">
+                  <div class="bg-gray-200 w-full h-96 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-400">
+                    <div class="text-center">
+                      <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 9" />
+                      </svg>
+                      <p class="text-gray-500 text-lg font-semibold">Map Canvas Area</p>
+                      <p class="text-gray-400 text-sm mt-2">Placeholder for interactive map</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right Sidebar: Sensors List -->
+                <div class="bg-white rounded-lg shadow-lg p-6 overflow-y-auto" style="max-height: 450px;">
+                  <h3 class="text-lg font-bold text-gray-800 mb-4">Active Sensors</h3>
+                  <div class="space-y-3">
+                    <div class="p-3 bg-green-50 border-l-4 border-green-500 rounded">
+                      <p class="font-semibold text-green-900">Sensor #1</p>
+                      <p class="text-sm text-green-700">Status: Online</p>
+                    </div>
+                    <div class="p-3 bg-green-50 border-l-4 border-green-500 rounded">
+                      <p class="font-semibold text-green-900">Sensor #2</p>
+                      <p class="text-sm text-green-700">Status: Online</p>
+                    </div>
+                    <div class="p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded">
+                      <p class="font-semibold text-yellow-900">Sensor #3</p>
+                      <p class="text-sm text-yellow-700">Status: Warning</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Alert Map Area -->
+              <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Recent Alerts</h2>
+                <div class="space-y-3">
+                  <div class="p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+                    <p class="font-semibold text-red-900">Critical Alert</p>
+                    <p class="text-sm text-red-700">Door sensor triggered at Main Entrance</p>
+                    <p class="text-xs text-red-600 mt-1">2 minutes ago</p>
+                  </div>
+                  <div class="p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
+                    <p class="font-semibold text-yellow-900">Warning</p>
+                    <p class="text-sm text-yellow-700">Fire alarm battery low</p>
+                    <p class="text-xs text-yellow-600 mt-1">15 minutes ago</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Alerts View -->
+            <div v-else-if="activeMenuItem === 'alerts'" class="space-y-6">
+              <h1 class="text-3xl font-bold text-gray-800">Alerts Management</h1>
+              <div class="bg-white rounded-lg shadow-lg p-6">
+                <p class="text-gray-600">Alerts management interface will be implemented here</p>
+              </div>
+            </div>
+
+            <!-- Sensors View -->
+            <div v-else-if="activeMenuItem === 'sensors'" class="space-y-6">
+              <h1 class="text-3xl font-bold text-gray-800">Sensors Management</h1>
+              <div class="bg-white rounded-lg shadow-lg p-6">
+                <p class="text-gray-600">Sensors management interface will be implemented here</p>
+              </div>
+            </div>
+
+            <!-- Dashboard Overview (default) -->
+            <div v-else class="space-y-6">
+              <h1 class="text-3xl font-bold text-gray-800">Welcome to ICAS Dashboard</h1>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Stat Cards -->
+                <div class="bg-white rounded-lg shadow p-6">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-gray-500 text-sm font-medium">Active Sensors</p>
+                      <p class="text-2xl font-bold text-gray-800 mt-2">24</p>
+                    </div>
+                    <div class="bg-blue-100 rounded-full p-3">
+                      <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6a2 2 0 012-2h4a2 2 0 012 2v13m-6 0a2 2 0 002 2h4a2 2 0 002-2m0 0V9a2 2 0 00-2-2h-4a2 2 0 00-2 2v10z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-gray-500 text-sm font-medium">Active Alerts</p>
+                      <p class="text-2xl font-bold text-gray-800 mt-2">3</p>
+                    </div>
+                    <div class="bg-red-100 rounded-full p-3">
+                      <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-gray-500 text-sm font-medium">System Status</p>
+                      <p class="text-2xl font-bold text-green-600 mt-2">Online</p>
+                    </div>
+                    <div class="bg-green-100 rounded-full p-3">
+                      <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-gray-500 text-sm font-medium">Connected Devices</p>
+                      <p class="text-2xl font-bold text-gray-800 mt-2">32</p>
+                    </div>
+                    <div class="bg-purple-100 rounded-full p-3">
+                      <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Actions -->
+              <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+                    View Map
+                  </button>
+                  <button class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+                    Check Alerts
+                  </button>
+                  <button class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+                    Manage Devices
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </AppLayout>
+</template>
+
+<style scoped>
+/* Smooth transitions */
+button, a {
+  transition: all 0.3s ease;
+}
+</style>
