@@ -5,3 +5,274 @@
 [x-cloak] {
     display: none;
 }
+
+:root {
+    /* Primary palette defaults (Command Blue) */
+    --icas-primary-50: 239 246 255;
+    --icas-primary-100: 219 234 254;
+    --icas-primary-200: 191 219 254;
+    --icas-primary-300: 147 197 253;
+    --icas-primary-400: 96 165 250;
+    --icas-primary-500: 59 130 246;
+    --icas-primary-600: 37 99 235;
+    --icas-primary-700: 29 78 216;
+    --icas-primary-800: 30 64 175;
+    --icas-primary-900: 30 58 138;
+    --icas-primary-950: 23 37 84;
+    --icas-primary-contrast: 255 255 255;
+
+    /* Surface palette defaults (Slate Mist) */
+    --icas-surface-0: 255 255 255;
+    --icas-surface-50: 248 250 252;
+    --icas-surface-100: 241 245 249;
+    --icas-surface-200: 226 232 240;
+    --icas-surface-300: 203 213 225;
+    --icas-surface-400: 148 163 184;
+    --icas-surface-500: 100 116 139;
+    --icas-surface-600: 71 85 105;
+    --icas-surface-700: 51 65 85;
+    --icas-surface-800: 30 41 59;
+    --icas-surface-900: 15 23 42;
+    --icas-surface-950: 2 6 23;
+    --icas-surface-contrast: 15 23 42;
+}
+
+html:root,
+html[data-theme='dark']:root {
+    /* PrimeVue token overrides (defaulting to dark mode styling) */
+    --p-splitter-background: rgb(var(--icas-surface-900) / 0.55);
+    --p-splitter-border-color: rgb(var(--icas-surface-800) / 0.85);
+    --p-splitter-color: rgb(var(--icas-surface-50));
+    --p-splitter-gutter-background: rgb(var(--icas-surface-800) / 0.8);
+    --p-splitter-handle-background: rgb(var(--icas-surface-50) / 0.35);
+
+    --p-select-background: rgb(var(--icas-surface-900) / 0.65);
+    --p-select-border-color: rgb(var(--icas-surface-700) / 0.9);
+    --p-select-hover-border-color: rgb(var(--icas-surface-600));
+    --p-select-focus-border-color: rgb(var(--icas-primary-400));
+    --p-select-color: rgb(var(--icas-surface-0));
+    --p-select-placeholder-color: rgb(var(--icas-surface-300));
+    --p-select-shadow: 0 20px 50px rgb(0 0 0 / 0.5);
+    --p-select-border-radius: 9999px;
+    --p-select-padding-x: 1.25rem;
+    --p-select-padding-y: 0.65rem;
+    --p-select-focus-ring-width: 0;
+    --p-select-focus-ring-style: solid;
+    --p-select-focus-ring-color: rgb(var(--icas-primary-400));
+    --p-select-focus-ring-offset: 0;
+    --p-select-focus-ring-shadow: 0 0 0 2px rgb(var(--icas-primary-400) / 0.25);
+
+    --p-select-dropdown-color: rgb(var(--icas-surface-200));
+    --p-select-overlay-background: rgb(var(--icas-surface-900) / 0.95);
+    --p-select-overlay-border-color: rgb(var(--icas-surface-700));
+    --p-select-overlay-color: rgb(var(--icas-surface-0));
+    --p-select-overlay-shadow: 0 30px 70px rgb(0 0 0 / 0.5);
+
+    --p-select-option-color: rgb(var(--icas-surface-0));
+    --p-select-option-focus-background: rgb(var(--icas-surface-800));
+    --p-select-option-focus-color: rgb(var(--icas-surface-0));
+    --p-select-option-selected-background: rgb(var(--icas-primary-600) / 0.25);
+    --p-select-option-selected-color: rgb(var(--icas-primary-50));
+    --p-select-option-border-radius: 9999px;
+}
+
+html[data-theme='light']:root {
+    --p-splitter-background: rgb(var(--icas-surface-0) / 0.97);
+    --p-splitter-border-color: rgb(var(--icas-surface-200));
+    --p-splitter-color: rgb(var(--icas-surface-800));
+    --p-splitter-gutter-background: rgb(var(--icas-surface-100) / 0.85);
+    --p-splitter-handle-background: rgb(var(--icas-surface-400) / 0.6);
+
+    --p-select-background: rgb(var(--icas-surface-0));
+    --p-select-border-color: rgb(var(--icas-surface-200));
+    --p-select-hover-border-color: rgb(var(--icas-surface-400));
+    --p-select-focus-border-color: rgb(var(--icas-primary-500));
+    --p-select-color: rgb(var(--icas-surface-800));
+    --p-select-placeholder-color: rgb(var(--icas-surface-500));
+    --p-select-shadow: 0 18px 48px rgb(15 23 42 / 0.18);
+    --p-select-focus-ring-color: rgb(var(--icas-primary-500));
+    --p-select-focus-ring-shadow: 0 0 0 2px rgb(var(--icas-primary-500) / 0.25);
+
+    --p-select-dropdown-color: rgb(var(--icas-surface-500));
+    --p-select-overlay-background: rgb(var(--icas-surface-0));
+    --p-select-overlay-border-color: rgb(var(--icas-surface-200));
+    --p-select-overlay-color: rgb(var(--icas-surface-800));
+    --p-select-overlay-shadow: 0 25px 60px rgb(15 23 42 / 0.15);
+
+    --p-select-option-color: rgb(var(--icas-surface-700));
+    --p-select-option-focus-background: rgb(var(--icas-surface-100));
+    --p-select-option-focus-color: rgb(var(--icas-surface-900));
+    --p-select-option-selected-background: rgb(var(--icas-primary-100));
+    --p-select-option-selected-color: rgb(var(--icas-primary-700));
+}
+
+body {
+    transition: background-color 200ms ease, color 200ms ease;
+}
+
+.surface-card,
+.surface-ground,
+.surface-section,
+.border-surface {
+    transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
+}
+
+:root[data-theme='dark'] body {
+    background-color: rgb(var(--icas-surface-950));
+    color: rgb(var(--icas-surface-50));
+}
+
+:root[data-theme='light'] body {
+    background-color: rgb(var(--icas-surface-50));
+    color: rgb(var(--icas-surface-900));
+}
+
+:root[data-theme='dark'] .surface-card {
+    background-color: rgb(var(--icas-surface-900));
+    color: rgb(var(--icas-surface-0));
+}
+
+:root[data-theme='light'] .surface-card {
+    background-color: rgb(var(--icas-surface-0));
+    color: rgb(var(--icas-surface-900));
+}
+
+:root[data-theme='dark'] .surface-ground {
+    background-color: rgb(var(--icas-surface-950));
+    color: rgb(var(--icas-surface-200));
+}
+
+:root[data-theme='light'] .surface-ground {
+    background-color: rgb(var(--icas-surface-100));
+    color: rgb(var(--icas-surface-800));
+}
+
+:root[data-theme='dark'] .surface-section {
+    background-color: rgb(var(--icas-surface-900));
+    color: rgb(var(--icas-surface-50));
+}
+
+:root[data-theme='light'] .surface-section {
+    background-color: rgb(var(--icas-surface-0));
+    color: rgb(var(--icas-surface-800));
+}
+
+:root[data-theme='dark'] .border-surface {
+    border-color: rgb(var(--icas-surface-800));
+}
+
+:root[data-theme='light'] .border-surface {
+    border-color: rgb(var(--icas-surface-200));
+}
+
+.p-dropdown,
+.app-select {
+    background-color: rgb(var(--icas-surface-900) / 0.65);
+    color: rgb(var(--icas-surface-0));
+    border: 1px solid rgb(var(--icas-surface-700) / 0.8);
+    border-radius: 9999px;
+    min-height: 2.75rem;
+    transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.p-dropdown .p-dropdown-label,
+.p-dropdown .p-placeholder {
+    color: inherit;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+}
+
+.p-dropdown .p-dropdown-trigger {
+    color: inherit;
+}
+
+.p-dropdown-panel {
+    background-color: rgb(var(--icas-surface-900) / 0.95);
+    border: 1px solid rgb(var(--icas-surface-700) / 0.9);
+    border-radius: 1rem;
+    backdrop-filter: blur(8px);
+}
+
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item {
+    color: rgb(var(--icas-surface-50));
+}
+
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight,
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item:hover {
+    background-color: rgb(var(--icas-primary-600) / 0.2);
+    color: rgb(var(--icas-primary-50));
+}
+
+:root[data-theme='light'] .p-dropdown,
+:root[data-theme='light'] .app-select {
+    background-color: rgb(var(--icas-surface-0));
+    color: rgb(var(--icas-surface-900));
+    border-color: rgb(var(--icas-surface-200));
+}
+
+:root[data-theme='light'] .p-dropdown-panel {
+    background-color: rgb(var(--icas-surface-0));
+    border-color: rgb(var(--icas-surface-200));
+}
+
+.app-select {
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    outline: none;
+}
+
+.app-select:focus,
+.p-dropdown.p-focus {
+    border-color: rgb(var(--icas-primary-500) / 0.8);
+    box-shadow: 0 0 0 2px rgb(var(--icas-primary-500) / 0.25);
+}
+
+.panel-chrome {
+    background-color: rgb(var(--icas-surface-900) / 0.55);
+    border: 1px solid rgb(var(--icas-surface-700) / 0.9);
+    border-radius: 1.75rem;
+    box-shadow: 0 30px 80px rgb(0 0 0 / 0.45);
+    backdrop-filter: blur(18px);
+}
+
+:root[data-theme='light'] .panel-chrome {
+    background-color: rgb(var(--icas-surface-0) / 0.92);
+    border-color: rgb(var(--icas-surface-200));
+    box-shadow: 0 15px 45px rgb(15 23 42 / 0.15);
+}
+
+.canvas-shell {
+    background-image:
+        radial-gradient(circle at 20% 20%, rgb(var(--icas-primary-500) / 0.08), transparent 45%),
+        radial-gradient(circle at 80% 0%, rgb(var(--icas-primary-400) / 0.05), transparent 40%),
+        linear-gradient(135deg, rgb(var(--icas-surface-900)), rgb(var(--icas-surface-950)));
+    border: 2px dashed rgb(var(--icas-surface-700));
+    border-radius: 2rem;
+    box-shadow: inset 0 0 40px rgb(0 0 0 / 0.45);
+}
+
+:root[data-theme='light'] .canvas-shell {
+    background-image:
+        radial-gradient(circle at 15% 25%, rgb(var(--icas-primary-200) / 0.25), transparent 55%),
+        radial-gradient(circle at 90% 10%, rgb(var(--icas-primary-100) / 0.2), transparent 50%),
+        linear-gradient(135deg, rgb(var(--icas-surface-0)), rgb(var(--icas-surface-100)));
+    border-color: rgb(var(--icas-surface-200));
+    box-shadow: inset 0 0 35px rgb(15 23 42 / 0.08);
+}
+
+.chip-muted {
+    background-color: rgb(var(--icas-surface-800) / 0.5);
+    border: 1px solid rgb(var(--icas-surface-600));
+    border-radius: 9999px;
+    color: rgb(var(--icas-surface-50));
+    letter-spacing: 0.3em;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    padding: 0.35rem 0.85rem;
+}
+
+:root[data-theme='light'] .chip-muted {
+    background-color: rgb(var(--icas-surface-100));
+    border-color: rgb(var(--icas-surface-200));
+    color: rgb(var(--icas-surface-600));
+}
