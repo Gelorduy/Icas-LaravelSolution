@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="fKpy1i06jJZXhxBUL0ZV" name="Arquitectura Logica">
-        <mxGraphModel dx="1816" dy="1258" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3200" pageHeight="2400" math="0" shadow="0">
+        <mxGraphModel dx="926" dy="605" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3200" pageHeight="2400" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -272,14 +272,14 @@
                 <mxCell id="wLp4miq3-AMlcHJkVBpW-21" value="&lt;div&gt;New Video Server&lt;/div&gt;" style="whiteSpace=wrap;html=1;aspect=fixed;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;" parent="1" vertex="1">
                     <mxGeometry x="1750" y="200" width="70" height="70" as="geometry"/>
                 </mxCell>
-                <mxCell id="4" value="ICAS (Intellignet Control Automation System)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=30;" vertex="1" parent="1">
+                <mxCell id="4" value="ICAS (Intellignet Control Automation System)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=30;" parent="1" vertex="1">
                     <mxGeometry x="350" y="50" width="740" height="30" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
     </diagram>
     <diagram id="0zagE-QjEPOyMz1LD7C6" name="DesignMainMapVisual">
-        <mxGraphModel dx="1763" dy="1264" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3200" pageHeight="2400" math="0" shadow="0">
+        <mxGraphModel dx="926" dy="605" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3200" pageHeight="2400" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -350,7 +350,7 @@
         </mxGraphModel>
     </diagram>
     <diagram name="DesignMainControlVisual" id="crrcXHdGInGBhZtZw_yY">
-        <mxGraphModel dx="1763" dy="1264" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3200" pageHeight="2400" math="0" shadow="0">
+        <mxGraphModel dx="1852" dy="1210" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3200" pageHeight="2400" math="0" shadow="0">
             <root>
                 <mxCell id="NeJzm429hzeiL5Kp9EQl-0"/>
                 <mxCell id="NeJzm429hzeiL5Kp9EQl-1" parent="NeJzm429hzeiL5Kp9EQl-0"/>
@@ -412,7 +412,7 @@
                 <mxCell id="ROaOeIuM1Ms4aiBxwhiI-17" value="5" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;shadow=0;strokeColor=#003366;strokeWidth=2;fontSize=13;fontColor=#FFFFFF;fillColor=#0066CC;" parent="ROaOeIuM1Ms4aiBxwhiI-3" vertex="1">
                     <mxGeometry x="1009" y="42" width="10" height="10" as="geometry"/>
                 </mxCell>
-                <mxCell id="00ao58azR6t2mEWgaumK-0" value="&amp;nbsp;Officer: John Doe" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="ROaOeIuM1Ms4aiBxwhiI-3">
+                <mxCell id="00ao58azR6t2mEWgaumK-0" value="&amp;nbsp;Officer: John Doe" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="ROaOeIuM1Ms4aiBxwhiI-3" vertex="1">
                     <mxGeometry x="328.75" y="22" width="130" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="ROaOeIuM1Ms4aiBxwhiI-18" value="" style="shape=mxgraph.mockup.containers.marginRect;rectMarginTop=10;strokeColor=#82b366;strokeWidth=1;dashed=0;rounded=1;arcSize=5;recursiveResize=0;labelBackgroundColor=none;labelBorderColor=none;fontSize=15;fillColor=#d5e8d4;" parent="ROaOeIuM1Ms4aiBxwhiI-0" vertex="1">

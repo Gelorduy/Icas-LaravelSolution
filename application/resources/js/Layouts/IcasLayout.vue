@@ -40,11 +40,11 @@ const toggleSidebar = () => {
       >
         <template #user-section>
           <div class="p-3">
-            <a class="flex items-center cursor-pointer p-3 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-border transition-colors duration-150" :class="sidebarExpanded ? 'gap-3' : 'justify-center'">
+            <a class="flex items-center cursor-pointer p-3 hover:bg-surface-900/60 rounded-2xl transition-colors duration-150" :class="sidebarExpanded ? 'gap-3' : 'justify-center'">
               <img src="https://fqjltiegiezfetthbags.supabase.co/storage/v1/render/image/public/block.images/blocks/avatars/avatar-amyels.png" class="w-8 h-8 rounded-full" />
               <div v-if="sidebarExpanded" class="flex flex-col">
-                <span class="font-semibold text-sm text-surface-900 dark:text-surface-0">{{ $page.props.auth.user.name }}</span>
-                <span class="text-xs text-surface-600 dark:text-surface-400">{{ $page.props.auth.user.email }}</span>
+                <span class="font-semibold text-sm text-surface-0/90">{{ $page.props.auth.user.name }}</span>
+                <span class="text-xs text-surface-300">{{ $page.props.auth.user.email }}</span>
               </div>
             </a>
           </div>

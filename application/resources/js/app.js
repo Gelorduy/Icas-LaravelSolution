@@ -10,8 +10,13 @@ import { createPinia } from 'pinia';
 import PrimeVue from 'primevue/config';
 import Aura from '@primevue/themes/aura';
 import StyleClass from 'primevue/styleclass';
+import { bootstrapPalettes } from './utils/themePalettes';
+import { bootstrapThemeMode } from './utils/themeMode';
 
 const appName = import.meta.env.VITE_APP_NAME || 'ICAS';
+
+bootstrapThemeMode();
+bootstrapPalettes();
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,

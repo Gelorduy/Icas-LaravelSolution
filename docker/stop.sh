@@ -13,7 +13,7 @@ cd "$(dirname "$0")"
 
 # Stop all services including MySQL
 echo "📦 Stopping all containers..."
-docker compose -f docker-compose.dev.yml --profile mysql down
+sudo docker compose -f docker-compose.dev.yml --profile mysql down
 
 echo ""
 echo "✅ All services stopped!"

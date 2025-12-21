@@ -119,8 +119,8 @@ const navigateTo = (item) => {
 </script>
 
 <template>
-  <div class="h-[calc(100vh-4rem)] flex shrink-0 surface-ground transition-all duration-300" :class="expanded ? 'w-80' : 'w-20'">
-    <div class="flex flex-col h-full w-full border-r-2 border-surface">
+  <div class="h-[calc(100vh-4rem)] flex shrink-0 bg-surface-950/85 text-surface-200 transition-all duration-300 backdrop-blur-xl" :class="expanded ? 'w-80' : 'w-20'">
+    <div class="flex flex-col h-full w-full border-r border-surface bg-gradient-to-b from-surface-950/90 to-surface-900/80 shadow-inner shadow-black/40">
       <!-- Menu Items Container -->
       <div class="flex-1 p-3 flex flex-col overflow-y-auto overflow-x-visible">
         <!-- Loop through all menu items -->
@@ -129,31 +129,31 @@ const navigateTo = (item) => {
             <!-- Item without submenu -->
             <a
               v-if="!item.items"
-              class="flex items-center cursor-pointer px-3 py-3 text-surface-700 dark:text-surface-0/80 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-border transition-colors duration-150"
+              class="flex items-center cursor-pointer px-3 py-3 text-surface-300 hover:bg-surface-900/60 hover:text-primary-200 rounded-2xl transition-colors duration-150"
               :class="[
-                expanded ? 'justify-start gap-2' : 'justify-center',
-                activeMenuItem === item.key ? 'bg-primary-50 dark:bg-primary-400/10 text-primary-500' : ''
+                expanded ? 'justify-start gap-3' : 'justify-center',
+                activeMenuItem === item.key ? 'bg-primary-500/20 text-primary-50 shadow-inner shadow-primary-950/40' : ''
               ]"
               :title="item.label"
               @click="navigateTo(item)"
             >
               <i :class="[item.icon, 'text-base']" />
-              <span v-if="expanded" class="font-medium flex-1">{{ item.label }}</span>
+              <span v-if="expanded" class="font-medium flex-1 tracking-wide uppercase text-xs">{{ item.label }}</span>
             </a>
 
             <!-- Item with submenu -->
             <div v-else class="relative">
               <a
                 v-styleclass="{ selector: '@next', enterFromClass: 'hidden', leaveToClass: 'hidden', hideOnOutsideClick: true }"
-                class="flex items-center cursor-pointer px-3 py-3 text-surface-700 dark:text-surface-0/80 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-border transition-colors duration-150"
+                class="flex items-center cursor-pointer px-3 py-3 text-surface-300 hover:bg-surface-900/60 rounded-2xl transition-colors duration-150"
                 :class="expanded ? 'justify-between' : 'justify-center'"
                 :title="item.label"
               >
-                <div class="flex items-center" :class="expanded ? 'gap-2' : ''">
+                <div class="flex items-center" :class="expanded ? 'gap-3' : ''">
                   <i :class="[item.icon, 'text-base']" />
-                  <span v-if="expanded" class="font-medium">{{ item.label }}</span>
+                  <span v-if="expanded" class="font-medium uppercase text-xs tracking-wide">{{ item.label }}</span>
                 </div>
-                <i v-if="expanded" class="pi pi-chevron-down text-sm text-surface-600" />
+                <i v-if="expanded" class="pi pi-chevron-down text-sm text-surface-400" />
               </a>
 
               <!-- Submenu List (Desktop: Floating when collapsed, Inline when expanded) -->
@@ -161,18 +161,18 @@ const navigateTo = (item) => {
                 class="list-none m-0 p-0 hidden overflow-hidden transition-all duration-300 ease-in-out"
                 :class="[
                   expanded 
-                    ? 'pl-8 static bg-transparent' 
-                    : 'absolute left-full top-0 ml-1 min-w-[14rem] bg-surface-0 dark:bg-surface-900 border-2 border-surface-200 dark:border-surface-700 rounded-lg shadow-xl p-2 z-[100]'
+                    ? 'pl-6 static bg-transparent' 
+                    : 'absolute left-full top-0 ml-2 min-w-[14rem] bg-surface-900/95 border border-surface rounded-2xl shadow-2xl p-3 z-[100] backdrop-blur'
                 ]"
               >
                 <li v-for="subitem in item.items" :key="subitem.key">
                   <a
-                    class="flex items-center cursor-pointer px-3 py-2 gap-2 text-surface-700 dark:text-surface-0/80 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-border transition-colors duration-150"
-                    :class="activeMenuItem === subitem.key ? 'bg-primary-50 dark:bg-primary-400/10 text-primary-500' : ''"
+                    class="flex items-center cursor-pointer px-3 py-2 gap-2 text-surface-300 hover:bg-surface-900/60 rounded-2xl transition-colors duration-150"
+                    :class="activeMenuItem === subitem.key ? 'bg-primary-500/20 text-primary-50' : ''"
                     @click="navigateTo(subitem)"
                   >
                     <i :class="[subitem.icon, 'text-sm']" />
-                    <span class="font-medium text-sm">{{ subitem.label }}</span>
+                    <span class="font-medium text-xs uppercase tracking-wide">{{ subitem.label }}</span>
                   </a>
                 </li>
               </ul>
@@ -182,7 +182,7 @@ const navigateTo = (item) => {
       </div>
 
       <!-- User Section at Bottom -->
-      <div class="mt-auto border-t-2 border-surface">
+      <div class="mt-auto border-t border-surface/70">
         <slot name="user-section"></slot>
       </div>
     </div>
