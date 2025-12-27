@@ -186,7 +186,7 @@ onBeforeUnmount(() => {
             <i v-if="showAdminMenu==false" class="pi pi-angle-down text-base! leading-none" />
             <i v-if="showAdminMenu" class="pi pi-angle-up text-base! leading-none" />
           </a>
-          <div v-show="showAdminMenu" class="absolute w-56 bg-surface-0/98 backdrop-blur-xl right-0 top-full z-50 shadow-2xl shadow-surface-400/40 origin-top rounded-2xl border border-surface-200 dark:bg-surface-900/95 dark:shadow-black/50 dark:border-surface-800 mt-2">
+          <div v-show="showAdminMenu" class="absolute w-56 bg-surface-0/95 border border-surface-200 dark:bg-surface-900/95 dark:border-surface-700 backdrop-blur-xl right-0 top-full z-50 shadow-2xl shadow-surface-400/40 origin-top rounded-2xl dark:shadow-black/50 mt-2">
             <ul class="list-none p-2 m-0">
               <li>
                 <a
