@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Head, usePage } from '@inertiajs/vue3';
 import Sidebar from '@/Components/Layout/Sidebar.vue';
 import TopBar from '@/Components/Layout/TopBar.vue';
@@ -12,12 +12,41 @@ const props = defineProps({
 });
 
 const sidebarExpanded = ref(false);
-const activeMenuItem = ref('dashboard');
 const $page = usePage();
 
 const toggleSidebar = () => {
   sidebarExpanded.value = !sidebarExpanded.value;
 };
+
+// Compute active menu item from current route
+const activeMenuItem = computed(() => {
+  const currentRoute = $page.props.ziggy?.route || route().current();
+  
+  // Map of route names to menu item keys
+  const routeMap = {
+    'dashboard': 'dashboard',
+    'map.index': 'map',
+    'alerts.active': 'alerts-active',
+    'alerts.history': 'alerts-history',
+    'alerts.config': 'alerts-config',
+    'sensors.status': 'sensors-status',
+    'sensors.manage': 'sensors-manage',
+    'cameras.live': 'cameras-live',
+    'cameras.recordings': 'cameras-recordings',
+    'access.index': 'access',
+    'reports.daily': 'reports-daily',
+    'reports.monthly': 'reports-monthly',
+    'reports.custom': 'reports-custom',
+    'users.index': 'users',
+    'devices.index': 'devices',
+    'logs.index': 'logs',
+    'settings.general': 'settings-general',
+    'settings.security': 'settings-security',
+    'settings.notifications': 'settings-notifications',
+  };
+  
+  return routeMap[currentRoute] || 'dashboard';
+});
 </script>
 
 <template>
@@ -36,7 +65,6 @@ const toggleSidebar = () => {
         :expanded="sidebarExpanded"
         :activeMenuItem="activeMenuItem"
         @update:expanded="sidebarExpanded = $event"
-        @update:activeMenuItem="activeMenuItem = $event"
       >
         <template #user-section>
           <div class="p-3">

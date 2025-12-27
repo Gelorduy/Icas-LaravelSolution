@@ -78,9 +78,6 @@ const toggleMenu = () => {
             </div>
           </div>
         </div>
-        <div class="rounded-2xl border border-surface-200 bg-surface-50 p-4 text-sm text-surface-600 dark:border-surface-700 dark:bg-surface-900/60 dark:text-surface-200">
-          Drag the splitters to resize the map, alerts column, or sensors dock as in the mockup.
-        </div>
       </div>
     </div>
   </section>

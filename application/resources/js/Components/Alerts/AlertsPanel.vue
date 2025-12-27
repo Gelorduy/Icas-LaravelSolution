@@ -165,21 +165,13 @@ const toggleCard = (id) => {
   <aside class="flex h-full min-h-0 max-h-full flex-col overflow-hidden rounded-3xl border border-surface-200 bg-surface-0 shadow-sm dark:border-surface-700 dark:bg-surface-900">
     <header class="flex flex-shrink-0 items-center justify-between border-b border-surface-200 px-4 py-4 dark:border-surface-800">
       <div>
-        <p class="text-xs uppercase tracking-[0.3em] text-primary">Alerts</p>
-        <h2 class="text-xl font-semibold text-surface-900 dark:text-surface-0">Main Control Queue</h2>
+        <h2 class="text-xl uppercase tracking-[0.3em] text-primary">Alerts</h2>
+        <!-- <h2 class="text-xl font-semibold text-surface-900 dark:text-surface-0">Main Control Queue</h2> -->
       </div>
       <button type="button" class="rounded-full border border-surface-200 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-surface-500 hover:text-primary dark:border-surface-800">
         Filter
       </button>
     </header>
-
-    <AlertsMenu
-      class="flex-shrink-0"
-      :active-tab="activeTab"
-      :sort-key="sortKey"
-      @update:activeTab="handleTab"
-      @update:sortKey="handleSort"
-    />
 
     <div class="flex-shrink-0 px-4 pb-4">
       <label class="flex items-center gap-2 rounded-full border border-surface-200 bg-surface-0 px-4 py-2 text-sm text-surface-500 dark:border-surface-700 dark:bg-surface-800">
@@ -192,6 +184,14 @@ const toggleCard = (id) => {
         >
       </label>
     </div>
+
+    <AlertsMenu
+      class="flex-shrink-0"
+      :active-tab="activeTab"
+      :sort-key="sortKey"
+      @update:activeTab="handleTab"
+      @update:sortKey="handleSort"
+    />
 
     <div class="flex-1 min-h-0 overflow-y-auto px-4 pb-6">
       <div class="flex flex-col gap-4">

@@ -65,7 +65,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="h-16 border-b border-surface bg-gradient-to-r from-surface-950/90 via-surface-900/90 to-surface-800/85 text-surface-0/90 flex items-center px-6 sticky top-0 z-40 shadow-xl shadow-black/40 backdrop-blur">
+  <div class="h-16 border-b border-surface-200 bg-gradient-to-r from-surface-50 via-surface-100 to-surface-200/90 text-surface-800 dark:border-surface-700 dark:from-surface-950/90 dark:via-surface-900/90 dark:to-surface-800/85 dark:text-surface-0/90 flex items-center px-6 sticky top-0 z-40 shadow-xl shadow-surface-300/30 dark:shadow-black/40 backdrop-blur">
     <div class="flex items-center justify-between w-full gap-6">
       <!-- Left: Sidebar Toggle, Logo and Site Selector -->
       <div class="flex items-center gap-4">
@@ -76,20 +76,20 @@ onBeforeUnmount(() => {
           rounded
           severity="secondary"
           @click="emit('toggle-sidebar')"
-          class="text-surface-0/80 hover:text-primary-200"
+          class="text-surface-700 hover:text-primary-600 dark:text-surface-0/80 dark:hover:text-primary-200"
         />
 
         <!-- Logo Section -->
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-primary-600/80 rounded-xl flex items-center justify-center shadow-inner shadow-black/30">
+          <div class="w-10 h-10 bg-primary-600/80 rounded-xl flex items-center justify-center shadow-inner shadow-primary-800/30 dark:shadow-black/30">
             <span class="text-primary-contrast font-bold text-lg tracking-[0.2em]">IC</span>
           </div>
-          <span class="font-bold text-2xl tracking-[0.3em] uppercase text-surface-0/80">ICAS</span>
+          <span class="font-bold text-2xl tracking-[0.3em] uppercase text-surface-800 dark:text-surface-0/80">ICAS</span>
         </div>
 
         <!-- Site Dropdown -->
         <div class="flex items-center gap-2">
-          <span class="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-surface-300">Site</span>
+          <span class="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-surface-600 dark:text-surface-300">Site</span>
           <Dropdown 
             v-model="selectedSite" 
             :options="sites" 
@@ -101,7 +101,7 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- Right: Action Icons and User Menu -->
-      <div class="flex items-center gap-2 text-surface-100">
+      <div class="flex items-center gap-2 text-surface-700 dark:text-surface-100">
         <!-- Mode Toggle -->
         <Button 
           :icon="themeIcon" 
@@ -109,7 +109,7 @@ onBeforeUnmount(() => {
           text 
           severity="secondary" 
           :aria-label="themeLabel"
-          class="text-surface-100 hover:text-primary-200"
+          class="text-surface-700 hover:text-primary-600 dark:text-surface-100 dark:hover:text-primary-200"
           @click="handleThemeToggle"
         />
 
@@ -123,7 +123,7 @@ onBeforeUnmount(() => {
             aria-label="Theme Palette"
             aria-haspopup="dialog"
             :aria-expanded="palettePanelOpen"
-            class="text-surface-100 hover:text-primary-200"
+            class="text-surface-700 hover:text-primary-600 dark:text-surface-100 dark:hover:text-primary-200"
             @click.stop="palettePanelOpen = !palettePanelOpen"
           />
           <transition
@@ -145,7 +145,7 @@ onBeforeUnmount(() => {
           text 
           severity="secondary" 
           aria-label="Cart"
-          class="text-surface-100 hover:text-primary-200"
+          class="text-surface-700 hover:text-primary-600 dark:text-surface-100 dark:hover:text-primary-200"
         />
 
         <!-- Calendar -->
@@ -155,7 +155,7 @@ onBeforeUnmount(() => {
           text 
           severity="secondary" 
           aria-label="Calendar"
-          class="text-surface-100 hover:text-primary-200"
+          class="text-surface-700 hover:text-primary-600 dark:text-surface-100 dark:hover:text-primary-200"
         />
 
         <!-- Notifications with Badge -->
@@ -166,7 +166,7 @@ onBeforeUnmount(() => {
             text 
             severity="secondary" 
             aria-label="Notifications"
-            class="text-surface-100 hover:text-primary-200"
+            class="text-surface-700 hover:text-primary-600 dark:text-surface-100 dark:hover:text-primary-200"
           />
           <Badge value="3" severity="danger" class="absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/4" />
         </div>
@@ -175,23 +175,23 @@ onBeforeUnmount(() => {
         <div class="h-full relative">
           <a
             @click="showAdminMenu = !showAdminMenu"
-            class="cursor-pointer h-full inline-flex items-center text-surface-100/80 px-2 border-l-2 lg:border-l-0 lg:border-b-2 border-transparent hover:border-surface transition-colors duration-150 gap-2"
+            class="cursor-pointer h-full inline-flex items-center text-surface-700 dark:text-surface-100/80 px-2 border-l-2 lg:border-l-0 lg:border-b-2 border-transparent hover:border-surface transition-colors duration-150 gap-2"
           >
             <img
               :src="`https://ui-avatars.com/api/?name=${encodeURIComponent($page.props.auth.user.name)}&background=random`" 
               class="w-8 h-8 rounded-full cursor-pointer" 
               :alt="$page.props.auth.user.name"
             />
-            <span class="font-medium text-sm text-surface-0/90">{{ $page.props.auth.user.name }}</span>
+            <span class="font-medium text-sm text-surface-800 dark:text-surface-0/90">{{ $page.props.auth.user.name }}</span>
             <i v-if="showAdminMenu==false" class="pi pi-angle-down text-base! leading-none" />
             <i v-if="showAdminMenu" class="pi pi-angle-up text-base! leading-none" />
           </a>
-          <div v-show="showAdminMenu" class="absolute w-56 bg-surface-900/95 backdrop-blur-xl right-0 top-full z-50 shadow-2xl shadow-black/50 origin-top rounded-2xl border border-surface-800 mt-2">
+          <div v-show="showAdminMenu" class="absolute w-56 bg-surface-0/98 backdrop-blur-xl right-0 top-full z-50 shadow-2xl shadow-surface-400/40 origin-top rounded-2xl border border-surface-200 dark:bg-surface-900/95 dark:shadow-black/50 dark:border-surface-800 mt-2">
             <ul class="list-none p-2 m-0">
               <li>
                 <a
                   @click="goToProfile"
-                  class="cursor-pointer h-full inline-flex items-center text-surface-200 border-l-2 border-transparent hover:border-primary-400 transition-colors duration-150 px-4 py-3 gap-2 w-full rounded-xl"
+                  class="cursor-pointer h-full inline-flex items-center text-surface-700 dark:text-surface-200 border-l-2 border-transparent hover:border-primary-500 dark:hover:border-primary-400 transition-colors duration-150 px-4 py-3 gap-2 w-full rounded-xl hover:bg-surface-100/50 dark:hover:bg-surface-800/50"
                 >
                   <span class="pi pi-user text-base" />
                   <span class="font-medium">Profile</span>
@@ -200,7 +200,7 @@ onBeforeUnmount(() => {
               <li>
                 <a
                   @click="goToProfile"
-                  class="cursor-pointer h-full inline-flex items-center text-surface-200 border-l-2 border-transparent hover:border-primary-400 transition-colors duration-150 px-4 py-3 gap-2 w-full rounded-xl"
+                  class="cursor-pointer h-full inline-flex items-center text-surface-700 dark:text-surface-200 border-l-2 border-transparent hover:border-primary-500 dark:hover:border-primary-400 transition-colors duration-150 px-4 py-3 gap-2 w-full rounded-xl hover:bg-surface-100/50 dark:hover:bg-surface-800/50"
                 >
                   <span class="pi pi-cog text-base" />
                   <span class="font-medium">Settings</span>
@@ -209,7 +209,7 @@ onBeforeUnmount(() => {
               <li>
                 <a
                   @click="logout"
-                  class="cursor-pointer h-full inline-flex items-center text-surface-200 border-l-2 border-transparent hover:border-primary-400 transition-colors duration-150 px-4 py-3 gap-2 w-full rounded-xl"
+                  class="cursor-pointer h-full inline-flex items-center text-surface-700 dark:text-surface-200 border-l-2 border-transparent hover:border-primary-500 dark:hover:border-primary-400 transition-colors duration-150 px-4 py-3 gap-2 w-full rounded-xl hover:bg-surface-100/50 dark:hover:bg-surface-800/50"
                 >
                   <span class="pi pi-sign-out text-base" />
                   <span class="font-medium">Sign Out</span>
