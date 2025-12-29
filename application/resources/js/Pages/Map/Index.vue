@@ -1,10 +1,29 @@
 <script setup>
+import { watch } from 'vue';
 import MapWorkspace from '@/Components/Map/MapWorkspace.vue';
 import AlertsPanel from '@/Components/Alerts/AlertsPanel.vue';
 import SensorsDock from '@/Components/Sensors/SensorsDock.vue';
 import IcasLayout from '@/Layouts/IcasLayout.vue';
 import Splitter from 'primevue/splitter';
 import SplitterPanel from 'primevue/splitterpanel';
+import { useMapStore } from '@/Stores/mapStore';
+
+const props = defineProps({
+  sites: {
+    type: Array,
+    default: () => []
+  }
+});
+
+const mapStore = useMapStore();
+
+watch(
+  () => props.sites,
+  (next) => {
+    mapStore.initializeSites(next ?? []);
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
@@ -16,10 +35,10 @@ import SplitterPanel from 'primevue/splitterpanel';
     >
       <SplitterPanel :size="70" :minSize="40" class="flex min-h-0 min-w-0 flex-col gap-4 overflow-hidden p-4">
         <Splitter layout="vertical" class="flex-1 min-h-0" style="height: 100%">
-          <SplitterPanel :size="65" :minSize="40" class="flex min-h-0 min-w-0 flex-col overflow-hidden">
+          <SplitterPanel :size="70" :minSize="40" class="flex min-h-0 min-w-0 flex-col overflow-hidden">
             <MapWorkspace class="h-full" />
           </SplitterPanel>
-          <SplitterPanel :size="35" :minSize="20" class="flex min-h-0 min-w-0 flex-col overflow-hidden">
+          <SplitterPanel :size="30" :minSize="20" class="flex min-h-0 min-w-0 flex-col overflow-hidden">
             <SensorsDock class="h-full" />
           </SplitterPanel>
         </Splitter>

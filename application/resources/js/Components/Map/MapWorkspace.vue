@@ -1,82 +1,200 @@
 <script setup>
-import { ref } from 'vue';
-import MapMenu from './MapMenu.vue';
+import { computed, ref, watch } from 'vue';
+import MapToolbar from '@/Components/Map/MapToolbar.vue';
+import MapMenu from '@/Components/Map/MapMenu.vue';
+import ViewportNavigator from '@/Components/Map/ViewportNavigator.vue';
+import LayerTogglePanel from '@/Components/Map/LayerTogglePanel.vue';
+import DxfImportPanel from '@/Components/Map/DxfImportPanel.vue';
+import MapCanvas from '@/Components/Map/MapCanvas.vue';
+import { useMapStore } from '@/Stores/mapStore';
 
-const props = defineProps({
-  title: {
-    type: String,
-    default: 'Main Control Floor'
+const mapStore = useMapStore();
+
+const manifestReady = computed(() => !!mapStore.manifest && !mapStore.error);
+const activeMenuKey = ref(mapStore.manifest ? 'layers' : 'import');
+const menuCollapsed = ref(false);
+const overlayOpen = ref(true);
+
+const manifestOptionalPanels = new Set(['import']);
+
+const overlayMetadata = {
+  actions: {
+    title: 'Action Center',
+    description: 'Trigger coordinated responses or broadcast commands across connected devices.'
+  },
+  edit: {
+    title: 'Edit Tools',
+    description: 'Draft annotations, adjust geometry, and fine-tune saved waypoints.'
+  },
+  options: {
+    title: 'Map Options',
+    description: 'Switch canvases, update viewports, and adjust zoom presets.'
+  },
+  tools: {
+    title: 'Field Tools',
+    description: 'Launch measurement, trace, or diagnostics tools tailored to your role.'
+  },
+  layers: {
+    title: 'Layer Console',
+    description: 'Toggle operational overlays, heatmaps, and IoT telemetry feeds.'
+  },
+  viewports: {
+    title: 'Viewport Navigator',
+    description: 'Jump across curated perspectives and saved patrol routes.'
+  },
+  import: {
+    title: 'DXF Import',
+    description: 'Upload facility DXF/DFX files and convert them to SVG layers.'
   }
+};
+
+const defaultOverlayMeta = {
+  title: 'Workspace Menu',
+  description: 'Choose a tab to open contextual overlays and utilities for the map workspace.'
+};
+
+const canRenderActivePanel = computed(() => {
+  if (!overlayOpen.value) {
+    return false;
+  }
+
+  if (manifestReady.value) {
+    return true;
+  }
+
+  return manifestOptionalPanels.has(activeMenuKey.value);
 });
 
-const activeMenu = ref('actions');
-const menuCollapsed = ref(false);
+const activeOverlayMeta = computed(() => overlayMetadata[activeMenuKey.value] ?? defaultOverlayMeta);
 
-const statusBadges = [
-  { label: 'OD3 Intake', time: '09:51 AM', tone: 'text-orange-500' },
-  { label: 'OD8 UnitB', time: '09:49 AM', tone: 'text-surface-500' },
-  { label: 'OD3 UnitA', time: '08:48 AM', tone: 'text-surface-500' }
-];
-
-const toggleMenu = () => {
-  menuCollapsed.value = !menuCollapsed.value;
+const handleMenuSelection = (key) => {
+  activeMenuKey.value = key;
+  overlayOpen.value = true;
+  menuCollapsed.value = false;
 };
+
+const collapseMenu = () => {
+  menuCollapsed.value = true;
+};
+
+const expandMenu = () => {
+  menuCollapsed.value = false;
+};
+
+const closeOverlay = () => {
+  overlayOpen.value = false;
+};
+
+watch(manifestReady, (ready) => {
+  if (!ready) {
+    activeMenuKey.value = 'import';
+  }
+});
 </script>
 
 <template>
   <section class="panel-chrome flex h-full min-h-0 flex-col text-surface-900 dark:text-surface-50">
-    <header class="flex flex-wrap items-center justify-between gap-4 px-6 pt-6">
-      <div>
-        <p class="text-[0.65rem] uppercase tracking-[0.4em] text-primary-300">Live Map</p>
-        <h2 class="text-2xl font-semibold text-surface-900 dark:text-surface-0">{{ title }}</h2>
-      </div>
-      <div class="flex flex-wrap gap-3">
-        <div
-          v-for="badge in statusBadges"
-          :key="badge.label"
-          class="flex items-center gap-2 rounded-full border border-surface-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-surface-600 dark:border-surface-600 dark:bg-surface-900/30 dark:text-surface-200"
-        >
-          <span :class="badge.tone">{{ badge.label }}</span>
-          <span class="text-surface-500 dark:text-surface-400">{{ badge.time }}</span>
-        </div>
-      </div>
-    </header>
+    <div class="relative flex-1 min-h-0 px-6 pb-6">
+      <div class="relative h-full min-h-[520px] overflow-hidden rounded-3xl">
+        <MapCanvas class="h-full" />
 
-    <div class="mt-4 flex-1 min-h-0 px-6 pb-6">
-      <div class="flex h-full min-h-0 flex-col gap-4">
-        <div class="canvas-shell flex-1 min-h-0">
-          <div class="relative flex h-full min-h-0 flex-col justify-center overflow-hidden">
-            <div class="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
-              <div class="flex items-center gap-3">
-                <MapMenu
-                  v-if="!menuCollapsed"
-                  id="map-menu-panel"
-                  class="max-w-[32rem] flex-shrink-0"
-                  orientation="horizontal"
-                  variant="overlay"
-                  :active-key="activeMenu"
-                  @update:active-key="activeMenu = $event"
-                />
-                <button
-                  type="button"
-                  class="flex items-center gap-2 rounded-full bg-primary px-3 py-2 text-sm font-semibold text-primary-contrast shadow-lg shadow-primary/40 transition hover:brightness-105"
-                  :aria-expanded="(!menuCollapsed).toString()"
-                  aria-controls="map-menu-panel"
-                  @click="toggleMenu"
-                >
-                  <span>{{ menuCollapsed ? 'Open Menu' : 'Collapse Menu' }}</span>
-                  <span :class="['pi text-base', menuCollapsed ? 'pi-chevron-left' : 'pi-chevron-right']"></span>
-                </button>
-              </div>
+        <div class="absolute left-1/2 top-6 z-20 -translate-x-1/2">
+          <transition
+            enter-active-class="duration-200 ease-out"
+            enter-from-class="opacity-0 -translate-y-2"
+            enter-to-class="opacity-100 translate-y-0"
+            leave-active-class="duration-150 ease-in"
+            leave-from-class="opacity-100 translate-y-0"
+            leave-to-class="opacity-0 -translate-y-2"
+          >
+            <div v-if="!menuCollapsed" class="flex items-center gap-2 rounded-full border border-white/40 bg-white/90 px-4 py-2 shadow-lg backdrop-blur dark:border-surface-700 dark:bg-surface-900/90">
+              <MapMenu
+                :activeKey="activeMenuKey"
+                variant="overlay"
+                @update:activeKey="handleMenuSelection"
+              />
+              <button
+                type="button"
+                class="rounded-full border border-surface-200 px-2 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-surface-500 hover:border-primary hover:text-primary dark:border-surface-600 dark:text-surface-100"
+                @click="collapseMenu"
+              >
+                Hide
+              </button>
             </div>
-            <div class="flex h-full flex-col items-center justify-center gap-3 text-center">
-              <span class="text-lg font-semibold text-surface-700 dark:text-surface-200">Map Canvas Placeholder</span>
-              <span class="text-sm text-surface-500 dark:text-surface-400">SVG / Realtime view will render here</span>
+          </transition>
+          <button
+            v-if="menuCollapsed"
+            type="button"
+            class="rounded-full border border-white/40 bg-white/85 px-4 py-3 text-surface-700 shadow-lg backdrop-blur transition hover:border-primary hover:text-primary dark:border-surface-600 dark:bg-surface-900/85 dark:text-surface-100"
+            @click="expandMenu"
+          >
+            <i class="pi pi-bars text-base" />
+          </button>
+        </div>
+        <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.35em] text-surface-500 dark:text-surface-300">
+          <DxfImportPanel
+            class="max-h-[360px] overflow-y-auto rounded-3xl border border-surface-200 bg-white/70 shadow-inner dark:border-surface-600 dark:bg-surface-900/70"
+          />
+        </div>
+
+        <transition
+          enter-active-class="duration-200 ease-out"
+          enter-from-class="opacity-0 translate-x-4"
+          enter-to-class="opacity-100 translate-x-0"
+          leave-active-class="duration-150 ease-in"
+          leave-from-class="opacity-100 translate-x-0"
+          leave-to-class="opacity-0 translate-x-4"
+        >
+
+          <aside
+            v-if="overlayOpen"
+            class="absolute right-4 top-24 z-30 flex w-full max-w-[360px] flex-col gap-4 rounded-3xl border border-white/40 bg-white/95 p-4 shadow-2xl backdrop-blur dark:border-surface-700/70 dark:bg-surface-900/95"
+          >
+            <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.35em] text-surface-500 dark:text-surface-300">
+              {{ activeOverlayMeta.title }}
+              <button
+                type="button"
+                class="rounded-full border border-surface-200 px-2 py-1 text-[0.65rem] font-bold tracking-[0.2em] text-surface-600 hover:border-primary hover:text-primary dark:border-surface-600 dark:text-surface-200"
+                @click="closeOverlay"
+              >
+                Close
+              </button>
             </div>
-            <div class="pointer-events-none absolute bottom-4 left-4 rounded-full bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-primary-600 shadow dark:bg-surface-900/70 dark:text-primary-200">
-              {{ activeMenu }} mode
+            <LayerTogglePanel
+              v-show="canRenderActivePanel && activeMenuKey === 'layers'"
+              class="max-h-[360px] overflow-y-auto rounded-3xl border border-surface-200 bg-white/70 shadow-inner dark:border-surface-600 dark:bg-surface-900/70"
+            />
+            <ViewportNavigator
+              v-show="canRenderActivePanel && activeMenuKey === 'viewports'"
+              class="max-h-[360px] overflow-y-auto rounded-3xl border border-surface-200 bg-white/70 shadow-inner dark:border-surface-600 dark:bg-surface-900/70"
+            />
+            <MapToolbar
+              v-show="canRenderActivePanel && activeMenuKey === 'options'"
+              class="max-h-[360px] overflow-y-auto rounded-3xl border border-surface-200 bg-white/70 shadow-inner dark:border-surface-600 dark:bg-surface-900/70"
+            />
+            <DxfImportPanel
+              v-show="canRenderActivePanel && activeMenuKey === 'import'"
+              class="max-h-[360px] overflow-y-auto rounded-3xl border border-surface-200 bg-white/70 shadow-inner dark:border-surface-600 dark:bg-surface-900/70"
+            />
+            <div
+              v-if="!canRenderActivePanel"
+              class="rounded-2xl border border-dashed border-surface-300 bg-white/60 p-4 text-sm text-surface-600 dark:border-surface-600 dark:bg-surface-900/40 dark:text-surface-200"
+            >
+              <p>
+                {{ manifestReady ? activeOverlayMeta.description : 'Select a facility from the global header and choose a map to begin.' }}
+              </p>
             </div>
-          </div>
+          </aside>
+        </transition>
+      </div>
+
+      <div v-if="mapStore.loading || mapStore.error || !manifestReady" class="pointer-events-none absolute inset-x-0 bottom-6 flex justify-center px-6">
+        <div
+          class="w-full max-w-xl rounded-3xl border border-surface-200 bg-surface-0/90 p-4 text-center text-sm text-surface-600 shadow-lg backdrop-blur dark:border-surface-700 dark:bg-surface-900/80 dark:text-surface-100"
+        >
+          <span v-if="mapStore.loading">Loading map data…</span>
+          <span v-else-if="mapStore.error">{{ mapStore.error }}</span>
+          <span v-else>Select a facility from the global header, then choose a map to begin.</span>
         </div>
       </div>
     </div>

@@ -26,7 +26,8 @@ const menuTabs = [
   { key: 'options', label: 'Options' },
   { key: 'tools', label: 'Tools' },
   { key: 'layers', label: 'Layers' },
-  { key: 'viewports', label: 'ViewPorts' }
+  { key: 'viewports', label: 'ViewPorts' },
+  { key: 'import', label: 'Import DXF' }
 ];
 
 const activeTab = computed(() => props.activeKey ?? menuTabs[0].key);

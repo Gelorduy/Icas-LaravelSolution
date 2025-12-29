@@ -6,6 +6,7 @@ import Badge from 'primevue/badge';
 import Dropdown from 'primevue/dropdown';
 import PalettePanel from '@/Components/Layout/PalettePanel.vue';
 import { getThemeMode, toggleThemeMode } from '@/utils/themeMode';
+import { useMapStore } from '@/Stores/mapStore';
 const $page = usePage();
 
 const showAdminMenu = ref(false);
@@ -24,13 +25,34 @@ const props = defineProps({
 
 const emit = defineEmits(['toggle-sidebar']);
 
-// Sample site data
-const selectedSite = ref({ name: 'Monroe County Jail', code: 'MCJ' });
-const sites = ref([
+const mapStore = useMapStore();
+
+// Sample site data (fallback when global sites are not yet loaded)
+const fallbackSites = ref([
   { name: 'Monroe County Jail', code: 'MCJ' },
   { name: 'City Center Facility', code: 'CCF' },
   { name: 'North Campus', code: 'NC' },
 ]);
+const fallbackSelectedSite = ref(fallbackSites.value[0]);
+
+const hasGlobalSites = computed(() => (mapStore.sites?.length ?? 0) > 0);
+const siteOptions = computed(() => (hasGlobalSites.value ? mapStore.sites : fallbackSites.value));
+
+const selectedSiteModel = computed({
+  get: () => {
+    if (hasGlobalSites.value) {
+      return mapStore.selectedSite ?? siteOptions.value[0] ?? null;
+    }
+    return fallbackSelectedSite.value;
+  },
+  set: (site) => {
+    if (hasGlobalSites.value && site?.id) {
+      mapStore.selectSite(site.id);
+      return;
+    }
+    fallbackSelectedSite.value = site;
+  },
+});
 
 const logout = () => {
   router.post(route('logout'));
@@ -91,8 +113,8 @@ onBeforeUnmount(() => {
         <div class="flex items-center gap-2">
           <span class="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-surface-600 dark:text-surface-300">Site</span>
           <Dropdown 
-            v-model="selectedSite" 
-            :options="sites" 
+            v-model="selectedSiteModel" 
+            :options="siteOptions" 
             optionLabel="name"
             placeholder="Select a Site"
             class="w-64"

@@ -1,0 +1,910 @@
+https://chatgpt.com/share/693a4843-1d08-8007-8784-2a2830eef2a3
+
+composer create-project laravel/laravel indoor-maps
+composer require laravel/jetstream
+php artisan jetstream:install inertia
+npm install && npm run dev
+
+
+//vite.config.js
+
+import { defineConfig } from 'vite';
+import laravel from 'laravel-vite-plugin';
+
+export default defineConfig({
+  plugins: [
+    laravel(['resources/js/app.js', 'resources/css/app.css']),
+  ],
+});
+
+
+// DataBase Schema
+
+// database/migrations/xxxx_create_maps_and_rooms_tables.php
+Schema::create('maps', function (Blueprint $table) {
+    $table->id();
+    $table->string('name');
+    $table->string('image_path')->nullable();  // Optional for raster images
+    $table->timestamps();
+});
+
+Schema::create('rooms', function (Blueprint $table) {
+    $table->id();
+    $table->unsignedBigInteger('map_id');
+    $table->string('name');
+    $table->json('coordinates');  // Store room boundaries or polygons as JSON
+    $table->timestamps();
+
+    $table->foreign('map_id')->references('id')->on('maps')->onDelete('cascade');
+});
+
+
+
+//MapController
+
+// app/Http/Controllers/MapController.php
+namespace App\Http\Controllers;
+
+use App\Models\Map;
+use Inertia\Inertia;
+
+class MapController extends Controller
+{
+    public function index()
+    {
+        $maps = Map::with('rooms')->get();  // Eager load rooms
+        return Inertia::render('IndoorMaps', ['maps' => $maps]);
+    }
+}
+
+
+//Vue Canvas Component
+<!-- resources/js/Pages/IndoorMaps.vue -->
+<template>
+  <div class="container mx-auto p-4">
+    <div v-for="map in maps" :key="map.id" class="my-4">
+      <h2 class="text-xl font-bold mb-2">{{ map.name }}</h2>
+      <canvas
+        :ref="'canvas' + map.id"
+        :width="800"
+        :height="600"
+        class="border border-gray-300"
+      ></canvas>
+    </div>
+  </div>
+</template>
+
+<script>
+import { onMounted, reactive } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+
+export default {
+  setup() {
+    const { props } = usePage(); // Access Laravel backend data
+    const maps = reactive(props.maps); // Maps with rooms and coordinates
+
+    const drawRoom = (ctx, coordinates) => {
+      ctx.beginPath();
+      coordinates.forEach(([x, y], index) => {
+        if (index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(0, 123, 255, 0.5)'; // Room color
+      ctx.fill();
+      ctx.stroke();
+    };
+
+    onMounted(() => {
+      maps.forEach((map) => {
+        const canvas = document.querySelector(`#canvas${map.id}`);
+        const ctx = canvas.getContext('2d');
+
+        map.rooms.forEach((room) => {
+          const coordinates = JSON.parse(room.coordinates); // Parsing JSON
+          drawRoom(ctx, coordinates);
+        });
+      });
+    });
+
+    return { maps };
+  },
+};
+</script>
+
+<style scoped>
+/* Optional Tailwind overrides */
+canvas {
+  display: block;
+  margin: auto;
+}
+</style>
+
+
+
+<!-- Add Tailwind structure to indoor maps -->
+<div class="container mx-auto grid grid-cols-2 gap-6">
+  <div class="p-4 shadow-lg rounded-lg bg-white">
+    <canvas id="floor-plan" class="w-full h-full"></canvas>
+  </div>
+</div>
+
+
+
+
+// **** SECOND RUN ******
+
+composer create-project laravel/laravel indoor-maps
+composer require laravel/jetstream
+php artisan jetstream:install inertia
+npm install && npm run dev
+
+
+
+
+// app/Http/Controllers/DXFController.php
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Storage;
+
+class DXFController extends Controller
+{
+    public function upload(Request $request)
+    {
+        $request->validate(['file' => 'required|mimes:dxf']);
+
+        $file = $request->file('file');
+        $path = $file->store('uploads/dxf');
+
+        // Convert DXF to SVG (Assume a Python script handles conversion)
+        $svgPath = storage_path('app/uploads/svg/' . $file->hashName() . '.svg');
+        exec("python3 dxf2svg.py " . escapeshellarg($path) . " > " . escapeshellarg($svgPath));
+
+        return redirect()->back()->with('success', 'DXF converted and uploaded successfully!');
+    }
+
+    public function index()
+    {
+        $maps = Storage::files('uploads/svg');
+        return Inertia::render('IndoorMaps', ['maps' => $maps]);
+    }
+}
+
+
+
+
+<!-- resources/js/Pages/IndoorMaps.vue -->
+<template>
+  <div class="container mx-auto p-4">
+    <div v-for="map in maps" :key="map" class="my-4">
+      <h2 class="text-xl font-bold mb-2">Map: {{ map }}</h2>
+      <div class="relative">
+        <object
+          :data="`/storage/${map}`"
+          type="image/svg+xml"
+          class="w-full h-full"
+          @load="handleLoad($event)"
+        ></object>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { onMounted, reactive } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+
+export default {
+  setup() {
+    const { props } = usePage();
+    const maps = reactive(props.maps);
+
+    const handleLoad = (event) => {
+      const svgDoc = event.target.contentDocument;
+      const svgElement = svgDoc.querySelector('svg');
+
+      // Optional: Manipulate SVG on load (e.g., apply zoom or CSS)
+      svgElement.style.width = '100%';
+      svgElement.style.height = 'auto';
+    };
+
+    return { maps };
+  },
+};
+</script>
+
+<style scoped>
+object {
+  border: 1px solid #ddd;
+  display: block;
+  margin: auto;
+}
+</style>
+
+
+// **** OPTIONAL DFX to SVG Python script ****
+# dxf2svg.py
+import ezdxf
+import sys
+
+def dxf_to_svg(input_file):
+    doc = ezdxf.readfile(input_file)
+    msp = doc.modelspace()
+
+    print('<?xml version="1.0" encoding="UTF-8"?>')
+    print('<svg xmlns="http://www.w3.org/2000/svg">')
+
+    for entity in msp:
+        if entity.dxftype() == 'LINE':
+            start, end = entity.dxf.start, entity.dxf.end
+            print(f'<line x1="{start.x}" y1="{start.y}" x2="{end.x}" y2="{end.y}" '
+                  f'stroke="black" stroke-width="1"/>')
+
+    print('</svg>')
+
+if __name__ == "__main__":
+    dxf_to_svg(sys.argv[1])
+
+
+
+
+
+
+
+// database/migrations/xxxx_create_maps_table.php
+Schema::create('maps', function (Blueprint $table) {
+    $table->id();
+    $table->string('name');
+    $table->string('svg_path');
+    $table->timestamps();
+});
+
+
+
+// app/Http/Controllers/MapController.php
+namespace App\Http\Controllers;
+
+use App\Models\Map;
+use Inertia\Inertia;
+
+class MapController extends Controller
+{
+    public function index()
+    {
+        $maps = Map::all();
+        return Inertia::render('IndoorMaps', ['maps' => $maps]);
+    }
+}
+
+
+
+
+<!-- UploadComponent.vue -->
+<template>
+  <div class="p-4">
+    <form @submit.prevent="uploadFile">
+      <input type="file" @change="handleFile" />
+      <button type="submit" class="bg-blue-500 text-white px-4 py-2">Upload</button>
+    </form>
+  </div>
+</template>
+
+<script>
+import { ref } from 'vue';
+
+export default {
+  setup() {
+    const file = ref(null);
+
+    const handleFile = (event) => {
+      file.value = event.target.files[0];
+    };
+
+    const uploadFile = async () => {
+      const formData = new FormData();
+      formData.append('file', file.value);
+
+      await fetch('/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      window.location.reload();
+    };
+
+    return { handleFile, uploadFile };
+  },
+};
+</script>
+
+
+
+
+
+npm install svg-pan-zoom
+
+
+<script>
+import svgPanZoom from 'svg-pan-zoom';
+
+const handleLoad = (event) => {
+  const svgDoc = event.target.contentDocument;
+  const svgElement = svgDoc.querySelector('svg');
+
+  svgPanZoom(svgElement, {
+    zoomEnabled: true,
+    controlIconsEnabled: true,
+  });
+};
+</script>
+
+
+
+
+// **** THIRD RUN ******
+
+// database/migrations/xxxx_create_maps_table.php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateMapsTable extends Migration
+{
+    public function up()
+    {
+        Schema::create('maps', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('svg_path'); // Path to SVG file
+            $table->string('description')->nullable(); // Optional map description
+            $table->timestamps();
+        });
+    }
+
+    public function down()
+    {
+        Schema::dropIfExists('maps');
+    }
+}
+
+
+
+// app/Models/Map.php
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Map extends Model
+{
+    protected $fillable = ['name', 'svg_path', 'description'];
+}
+
+
+
+
+
+// app/Http/Controllers/MapController.php
+namespace App\Http\Controllers;
+
+use App\Models\Map;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Storage;
+
+class MapController extends Controller
+{
+    public function index()
+    {
+        $maps = Map::all(); // Fetch all maps
+        return Inertia::render('IndoorMaps', ['maps' => $maps]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'file' => 'required|mimes:dxf', // DXF file required
+        ]);
+
+        // Store the uploaded DXF file
+        $dxfPath = $request->file('file')->store('uploads/dxf');
+
+        // Convert DXF to SVG using a Python script or service
+        $svgName = pathinfo($dxfPath, PATHINFO_FILENAME) . '.svg';
+        $svgPath = 'uploads/svg/' . $svgName;
+        exec("python3 dxf2svg.py " . escapeshellarg(storage_path('app/' . $dxfPath)) . " > " . escapeshellarg(storage_path('app/' . $svgPath)));
+
+        // Save map details in the database
+        Map::create([
+            'name' => $request->input('name'),
+            'svg_path' => $svgPath,
+            'description' => $request->input('description', ''),
+        ]);
+
+        return redirect()->route('maps.index')->with('success', 'Map uploaded successfully!');
+    }
+}
+
+
+
+
+
+<!-- resources/js/Pages/IndoorMaps.vue -->
+<template>
+  <div class="container mx-auto p-4">
+    <h1 class="text-2xl font-bold mb-4">Indoor Maps</h1>
+    <form @submit.prevent="uploadMap" class="mb-8">
+      <input type="text" v-model="mapName" placeholder="Map Name" required class="border p-2 mr-2" />
+      <input type="file" @change="handleFile" required class="mr-2" />
+      <button type="submit" class="bg-blue-500 text-white px-4 py-2">Upload Map</button>
+    </form>
+
+    <div v-for="map in maps" :key="map.id" class="my-4">
+      <h2 class="text-xl font-bold mb-2">{{ map.name }}</h2>
+      <object
+        :data="`/storage/${map.svg_path}`"
+        type="image/svg+xml"
+        class="w-full h-96"
+      ></object>
+    </div>
+  </div>
+</template>
+
+<script>
+import { ref, reactive, onMounted } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+
+export default {
+  setup() {
+    const { props } = usePage(); // Fetch Laravel props
+    const maps = reactive(props.maps); // Reactive maps array
+    const mapName = ref('');
+    const file = ref(null);
+
+    const handleFile = (event) => {
+      file.value = event.target.files[0];
+    };
+
+    const uploadMap = async () => {
+      const formData = new FormData();
+      formData.append('name', mapName.value);
+      formData.append('file', file.value);
+
+      await fetch('/maps', {
+        method: 'POST',
+        body: formData,
+      });
+
+      window.location.reload(); // Reload to see the new map
+    };
+
+    return { maps, mapName, handleFile, uploadMap };
+  },
+};
+</script>
+
+<style scoped>
+object {
+  border: 1px solid #ddd;
+  display: block;
+  margin: auto;
+}
+</style>
+
+
+
+
+
+// routes/web.php
+use App\Http\Controllers\MapController;
+
+Route::get('/maps', [MapController::class, 'index'])->name('maps.index');
+Route::post('/maps', [MapController::class, 'store'])->name('maps.store');
+
+
+
+
+# dxf2svg.py
+import ezdxf
+import sys
+
+def dxf_to_svg(input_file):
+    doc = ezdxf.readfile(input_file)
+    msp = doc.modelspace()
+
+    print('<?xml version="1.0" encoding="UTF-8"?>')
+    print('<svg xmlns="http://www.w3.org/2000/svg">')
+
+    for entity in msp:
+        if entity.dxftype() == 'LINE':
+            start, end = entity.dxf.start, entity.dxf.end
+            print(f'<line x1="{start.x}" y1="{start.y}" x2="{end.x}" y2="{end.y}" '
+                  f'stroke="black" stroke-width="1"/>')
+
+    print('</svg>')
+
+if __name__ == "__main__":
+    dxf_to_svg(sys.argv[1])
+
+
+
+<div class="container mx-auto p-4">
+  <h1 class="text-2xl font-bold mb-4">Indoor Maps</h1>
+  <form @submit.prevent="uploadMap" class="mb-8">
+    <input type="text" v-model="mapName" placeholder="Map Name" required class="border p-2 mr-2" />
+    <input type="file" @change="handleFile" required class="mr-2" />
+    <button type="submit" class="bg-blue-500 text-white px-4 py-2">Upload Map</button>
+  </form>
+</div>
+
+
+php artisan storage:link
+
+
+
+
+// **** FOURTH RUN ******
+
+// database/migrations/xxxx_create_maps_table.php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateMapsTable extends Migration
+{
+    public function up()
+    {
+        Schema::create('maps', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('description')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down()
+    {
+        Schema::dropIfExists('maps');
+    }
+}
+
+
+// database/migrations/xxxx_create_rooms_table.php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateRoomsTable extends Migration
+{
+    public function up()
+    {
+        Schema::create('rooms', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('map_id');
+            $table->string('name');
+            $table->json('coordinates');  // Store room polygons
+            $table->timestamps();
+
+            $table->foreign('map_id')->references('id')->on('maps')->onDelete('cascade');
+        });
+    }
+
+    public function down()
+    {
+        Schema::dropIfExists('rooms');
+    }
+}
+
+
+// database/migrations/xxxx_create_markers_table.php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateMarkersTable extends Migration
+{
+    public function up()
+    {
+        Schema::create('markers', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('map_id');
+            $table->string('name');
+            $table->float('x');
+            $table->float('y');
+            $table->timestamps();
+
+            $table->foreign('map_id')->references('id')->on('maps')->onDelete('cascade');
+        });
+    }
+
+    public function down()
+    {
+        Schema::dropIfExists('markers');
+    }
+}
+
+
+
+
+// app/Http/Controllers/MapController.php
+namespace App\Http\Controllers;
+
+use App\Models\Map;
+use App\Models\Room;
+use App\Models\Marker;
+use Inertia\Inertia;
+use Illuminate\Http\Request;
+
+class MapController extends Controller
+{
+    public function index()
+    {
+        $maps = Map::with(['rooms', 'markers'])->get();
+        return Inertia::render('IndoorMaps', ['maps' => $maps]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        Map::create($request->only('name', 'description'));
+
+        return redirect()->route('maps.index');
+    }
+}
+
+
+
+npm install leaflet
+
+
+
+<template>
+  <div class="container mx-auto p-4">
+    <h1 class="text-2xl font-bold mb-4">Indoor Maps</h1>
+
+    <div v-for="map in maps" :key="map.id" class="my-4">
+      <h2 class="text-xl font-bold">{{ map.name }}</h2>
+
+      <!-- Leaflet Map -->
+      <div id="map" class="w-full h-96"></div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { onMounted, reactive } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+import L from 'leaflet';
+
+export default {
+  setup() {
+    const { props } = usePage();
+    const maps = reactive(props.maps);
+
+    const loadMap = (mapData) => {
+      const map = L.map('map').setView([0, 0], 2);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+      mapData.rooms.forEach((room) => {
+        const coordinates = JSON.parse(room.coordinates);
+        L.polygon(coordinates, { color: 'blue' }).addTo(map);
+      });
+
+      mapData.markers.forEach((marker) => {
+        L.marker([marker.x, marker.y]).addTo(map).bindPopup(marker.name);
+      });
+    };
+
+    onMounted(() => {
+      maps.forEach((map) => loadMap(map));
+    });
+
+    return { maps };
+  },
+};
+</script>
+
+<style scoped>
+#map {
+  height: 600px;
+  width: 100%;
+}
+</style>
+
+
+
+
+@foreach ($maps as $map)
+  <h2>{{ $map->name }}</h2>
+  <svg width="800" height="600" style="border:1px solid black;">
+    @foreach ($map->rooms as $room)
+      <polygon points="{{ implode(' ', json_decode($room->coordinates)) }}" fill="lightblue" stroke="blue" />
+    @endforeach
+
+    @foreach ($map->markers as $marker)
+      <circle cx="{{ $marker->x }}" cy="{{ $marker->y }}" r="5" fill="red" />
+    @endforeach
+  </svg>
+@endforeach
+
+
+
+use App\Http\Controllers\MapController;
+
+Route::get('/maps', [MapController::class, 'index'])->name('maps.index');
+Route::post('/maps', [MapController::class, 'store'])->name('maps.store');
+
+
+
+
+// **** FIFTH RUN ******
+
+// database/migrations/xxxx_create_maps_table.php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateMapsTable extends Migration
+{
+    public function up()
+    {
+        Schema::create('maps', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('description')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down()
+    {
+        Schema::dropIfExists('maps');
+    }
+}
+
+
+// database/migrations/xxxx_create_rooms_table.php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateRoomsTable extends Migration
+{
+    public function up()
+    {
+        Schema::create('rooms', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('map_id');
+            $table->string('name');
+            $table->json('coordinates');  // Store room polygons
+            $table->timestamps();
+
+            $table->foreign('map_id')->references('id')->on('maps')->onDelete('cascade');
+        });
+    }
+
+    public function down()
+    {
+        Schema::dropIfExists('rooms');
+    }
+}
+
+
+
+// app/Http/Controllers/MapController.php
+namespace App\Http\Controllers;
+
+use App\Models\Map;
+use App\Models\Room;
+use Illuminate\Http\Request;
+
+class MapController extends Controller
+{
+    public function index()
+    {
+        $maps = Map::with('rooms')->get();
+        return view('maps.index', compact('maps'));
+    }
+
+    public function renderSVG($mapId)
+    {
+        $map = Map::with('rooms')->findOrFail($mapId);
+
+        return response()->view('maps.svg', compact('map'))
+            ->header('Content-Type', 'image/svg+xml');
+    }
+}
+
+
+
+
+<!-- resources/views/maps/svg.blade.php -->
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg" style="border:1px solid black;">
+  <style>
+    .room { fill: lightblue; stroke: blue; }
+  </style>
+
+  @foreach ($map->rooms as $room)
+    <polygon class="room"
+             points="{{ implode(' ', json_decode($room->coordinates)) }}"
+             data-name="{{ $room->name }}"
+    />
+  @endforeach
+</svg>
+
+
+
+npm install leaflet
+
+
+<template>
+  <div class="container mx-auto p-4">
+    <h1 class="text-2xl font-bold mb-4">Indoor Maps</h1>
+
+    <div v-for="map in maps" :key="map.id" class="my-4">
+      <h2 class="text-xl font-bold mb-2">{{ map.name }}</h2>
+      <div id="map" class="w-full h-96"></div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { onMounted, reactive } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+import L from 'leaflet';
+
+export default {
+  setup() {
+    const { props } = usePage();
+    const maps = reactive(props.maps);
+
+    const loadMap = (map) => {
+      const mapInstance = L.map('map').setView([0, 0], 2);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
+
+      // Load SVG as overlay
+      const svgOverlay = L.imageOverlay(`/maps/svg/${map.id}`, [[0, 0], [600, 800]]);
+      svgOverlay.addTo(mapInstance);
+    };
+
+    onMounted(() => {
+      maps.forEach(loadMap);
+    });
+
+    return { maps };
+  },
+};
+</script>
+
+<style scoped>
+#map {
+  height: 600px;
+  width: 100%;
+}
+</style>
+
+
+
+use App\Http\Controllers\MapController;
+
+Route::get('/maps', [MapController::class, 'index'])->name('maps.index');
+Route::get('/maps/svg/{mapId}', [MapController::class, 'renderSVG'])->name('maps.svg');
+
+
+
+
+
+
+
+
+
+
+

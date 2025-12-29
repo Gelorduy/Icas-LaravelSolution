@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\SiteMapController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -23,9 +24,7 @@ Route::middleware([
     })->name('dashboard');
     
     // Map
-    Route::get('/map', function () {
-        return Inertia::render('Map/Index');
-    })->name('map.index');
+    Route::get('/map', [SiteMapController::class, 'index'])->name('map.index');
     
     // Alerts
     Route::prefix('alerts')->group(function () {
