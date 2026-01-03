@@ -17,6 +17,8 @@ services:
     depends_on:
       redis:
         condition: service_started
+      mysql:
+        condition: service_healthy
 
   icas-comm:
     build: ../communications
@@ -40,6 +42,8 @@ services:
     depends_on:
       redis:
         condition: service_started
+      mysql:
+        condition: service_healthy
 
   icas-nginx:
     image: nginx:stable-alpine
@@ -62,8 +66,8 @@ services:
     volumes:
       - redis_data:/data
 
-  # MySQL service - optional for local development
-  # To use external MySQL, comment this out and set DB_HOST env variable
+  # MySQL service - starts automatically with other services
+  # To use external MySQL instead, remove this service and set DB_HOST in .env
   mysql:
     image: mysql:8.0
     environment:
@@ -73,8 +77,12 @@ services:
       - "${DB_PORT:-3306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-    profiles:
-      - mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
   redis_data:

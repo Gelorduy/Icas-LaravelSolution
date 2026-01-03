@@ -112,4 +112,10 @@ Route::middleware([
             return Inertia::render('Settings/Notifications');
         })->name('settings.notifications');
     });
+
+    // Admin - User Management
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::resource('users', \App\Http\Controllers\Admin\UserManagementController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::get('roles', [\App\Http\Controllers\Admin\RoleManagementController::class, 'index'])->name('roles.index');
+    });
 });

@@ -16,6 +16,8 @@ const themeMode = ref(getThemeMode());
 const themeIcon = computed(() => (themeMode.value === 'dark' ? 'pi pi-sun' : 'pi pi-moon'));
 const themeLabel = computed(() => (themeMode.value === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'));
 
+const allowedAdminMenuItems = computed(() => $page.props.permissions?.allowedAdminMenuItems || []);
+
 const props = defineProps({
   sidebarExpanded: {
     type: Boolean,
@@ -210,7 +212,7 @@ onBeforeUnmount(() => {
           </a>
           <div v-show="showAdminMenu" class="absolute w-56 bg-surface-0/95 border border-surface-200 dark:bg-surface-900/95 dark:border-surface-700 backdrop-blur-xl right-0 top-full z-50 shadow-2xl shadow-surface-400/40 origin-top rounded-2xl dark:shadow-black/50 mt-2">
             <ul class="list-none p-2 m-0">
-              <li>
+              <li v-if="allowedAdminMenuItems.includes('profile')">
                 <a
                   @click="goToProfile"
                   class="cursor-pointer h-full inline-flex items-center text-surface-700 dark:text-surface-200 border-l-2 border-transparent hover:border-primary-500 dark:hover:border-primary-400 transition-colors duration-150 px-4 py-3 gap-2 w-full rounded-xl hover:bg-surface-100/50 dark:hover:bg-surface-800/50"
@@ -219,7 +221,7 @@ onBeforeUnmount(() => {
                   <span class="font-medium">Profile</span>
                 </a>
               </li>
-              <li>
+              <li v-if="allowedAdminMenuItems.includes('settings')">
                 <a
                   @click="goToProfile"
                   class="cursor-pointer h-full inline-flex items-center text-surface-700 dark:text-surface-200 border-l-2 border-transparent hover:border-primary-500 dark:hover:border-primary-400 transition-colors duration-150 px-4 py-3 gap-2 w-full rounded-xl hover:bg-surface-100/50 dark:hover:bg-surface-800/50"
@@ -228,7 +230,7 @@ onBeforeUnmount(() => {
                   <span class="font-medium">Settings</span>
                 </a>
               </li>
-              <li>
+              <li v-if="allowedAdminMenuItems.includes('logout')" class="border-t border-surface-200 dark:border-surface-700 mt-2 pt-2">
                 <a
                   @click="logout"
                   class="cursor-pointer h-full inline-flex items-center text-surface-700 dark:text-surface-200 border-l-2 border-transparent hover:border-primary-500 dark:hover:border-primary-400 transition-colors duration-150 px-4 py-3 gap-2 w-full rounded-xl hover:bg-surface-100/50 dark:hover:bg-surface-800/50"

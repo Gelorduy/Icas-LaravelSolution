@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\PermissionService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -35,9 +36,21 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        
         return [
             ...parent::share($request),
-            //
+            'permissions' => $user ? [
+                'allowedMapMenuItems' => PermissionService::getAllowedMapMenuItems($user),
+                'allowedSidebarMenuItems' => PermissionService::getAllowedSidebarMenuItems($user),
+                'allowedAdminMenuItems' => PermissionService::getAllowedAdminMenuItems($user),
+                'userPermissions' => PermissionService::getUserPermissions($user),
+            ] : [
+                'allowedMapMenuItems' => [],
+                'allowedSidebarMenuItems' => [],
+                'allowedAdminMenuItems' => [],
+                'userPermissions' => [],
+            ],
         ];
     }
 }

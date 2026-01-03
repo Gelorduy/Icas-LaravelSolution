@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
   activeKey: {
@@ -20,7 +21,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update:activeKey']);
 
-const menuTabs = [
+const page = usePage();
+
+const allMenuTabs = [
   { key: 'actions', label: 'Actions' },
   { key: 'edit', label: 'Edit' },
   { key: 'options', label: 'Options' },
@@ -30,7 +33,13 @@ const menuTabs = [
   { key: 'import', label: 'Import DXF' }
 ];
 
-const activeTab = computed(() => props.activeKey ?? menuTabs[0].key);
+const allowedMenuItems = computed(() => page.props.permissions?.allowedMapMenuItems || []);
+
+const menuTabs = computed(() => {
+  return allMenuTabs.filter(tab => allowedMenuItems.value.includes(tab.key));
+});
+
+const activeTab = computed(() => props.activeKey ?? menuTabs.value[0]?.key);
 
 const handleSelect = (key) => {
   emit('update:activeKey', key);

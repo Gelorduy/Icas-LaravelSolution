@@ -5,6 +5,8 @@ import { useMapStore } from '@/Stores/mapStore';
 const mapStore = useMapStore();
 const svgRef = ref(null);
 const viewBox = ref('0 0 1000 1000');
+const isDragging = ref(false);
+const dragStart = ref({ x: 0, y: 0 });
 
 const activeMap = computed(() => mapStore.manifest?.map);
 const activeViewport = computed(() => mapStore.activeViewport);
@@ -35,17 +37,106 @@ const normalizeBounds = () => {
 const applyViewportToViewBox = () => {
   const { x, y, width, height } = normalizeBounds();
   const scale = mapStore.zoomLevel.scale ?? 1;
+  const pan = mapStore.pan ?? { x: 0, y: 0 };
+  
   const adjustedWidth = width / scale;
   const adjustedHeight = height / scale;
-  viewBox.value = `${x} ${y} ${adjustedWidth} ${adjustedHeight}`;
+  
+  viewBox.value = `${x + pan.x} ${y + pan.y} ${adjustedWidth} ${adjustedHeight}`;
 };
 
 const handleWheel = (event) => {
   if (!mapStore.manifest) return;
-  const direction = event.deltaY > 0 ? -1 : 1;
-  const step = 0.1 * direction;
-  const nextZoom = Math.max(0.1, (mapStore.zoom ?? 1) + step);
-  mapStore.setZoom(nextZoom);
+  
+  // Ctrl + wheel for zoom
+  if (event.ctrlKey) {
+    event.preventDefault();
+    
+    const direction = event.deltaY > 0 ? -1 : 1;
+    const step = 0.1 * direction;
+    const currentZoom = mapStore.zoom ?? 1;
+    const nextZoom = Math.max(0.1, currentZoom + step);
+    
+    // Get mouse position relative to SVG element
+    const rect = svgRef.value.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+    
+    // Convert mouse position to SVG coordinates before zoom
+    const { x, y, width, height } = normalizeBounds();
+    const currentPan = mapStore.pan ?? { x: 0, y: 0 };
+    const adjustedWidth = width / currentZoom;
+    const adjustedHeight = height / currentZoom;
+    
+    const svgMouseX = (mouseX / rect.width) * adjustedWidth + x + currentPan.x;
+    const svgMouseY = (mouseY / rect.height) * adjustedHeight + y + currentPan.y;
+    
+    // Calculate new pan to keep the mouse position fixed
+    const newAdjustedWidth = width / nextZoom;
+    const newAdjustedHeight = height / nextZoom;
+    
+    const newPanX = svgMouseX - (mouseX / rect.width) * newAdjustedWidth - x;
+    const newPanY = svgMouseY - (mouseY / rect.height) * newAdjustedHeight - y;
+    
+    mapStore.setZoom(nextZoom);
+    mapStore.setPan({ x: newPanX, y: newPanY });
+    return;
+  }
+  
+  // Shift + wheel for horizontal panning
+  if (event.shiftKey) {
+    const direction = event.deltaY > 0 ? 1 : -1;
+    const panStep = 50 * direction;
+    const currentPan = mapStore.pan ?? { x: 0, y: 0 };
+    mapStore.setPan({
+      x: currentPan.x + panStep,
+      y: currentPan.y,
+    });
+    return;
+  }
+  
+  // Regular wheel for vertical panning
+  const direction = event.deltaY > 0 ? 1 : -1;
+  const panStep = 50 * direction;
+  const currentPan = mapStore.pan ?? { x: 0, y: 0 };
+  mapStore.setPan({
+    x: currentPan.x,
+    y: currentPan.y + panStep,
+  });
+};
+
+const handleMouseDown = (event) => {
+  if (event.button !== 0) return; // Only left mouse button
+  isDragging.value = true;
+  dragStart.value = { x: event.clientX, y: event.clientY };
+  event.preventDefault();
+};
+
+const handleMouseMove = (event) => {
+  if (!isDragging.value) return;
+  
+  const deltaX = event.clientX - dragStart.value.x;
+  const deltaY = event.clientY - dragStart.value.y;
+  
+  // Update drag start for next movement
+  dragStart.value = { x: event.clientX, y: event.clientY };
+  
+  // Apply pan based on zoom level (more zoom = less pan per pixel)
+  const scale = mapStore.zoom ?? 1;
+  const currentPan = mapStore.pan ?? { x: 0, y: 0 };
+  
+  mapStore.setPan({
+    x: currentPan.x - (deltaX / scale),
+    y: currentPan.y - (deltaY / scale),
+  });
+};
+
+const handleMouseUp = () => {
+  isDragging.value = false;
+};
+
+const handleMouseLeave = () => {
+  isDragging.value = false;
 };
 
 const getLayerOpacity = (layer) => layer.style_preset?.opacity ?? 1;
@@ -61,6 +152,7 @@ onMounted(() => {
 
 watch(activeViewport, applyViewportToViewBox);
 watch(() => mapStore.zoomLevel, applyViewportToViewBox, { deep: true });
+watch(() => mapStore.pan, applyViewportToViewBox, { deep: true });
 </script>
 
 <template>
@@ -78,7 +170,12 @@ watch(() => mapStore.zoomLevel, applyViewportToViewBox, { deep: true });
     </header>
     <div
       class="relative flex-1 overflow-hidden"
+      :class="{ 'cursor-grabbing': isDragging, 'cursor-grab': !isDragging }"
       @wheel.prevent="handleWheel"
+      @mousedown="handleMouseDown"
+      @mousemove="handleMouseMove"
+      @mouseup="handleMouseUp"
+      @mouseleave="handleMouseLeave"
     >
       <svg
         ref="svgRef"

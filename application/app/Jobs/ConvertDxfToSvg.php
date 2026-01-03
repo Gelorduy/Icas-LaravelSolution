@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Map;
+use App\Models\MapLayer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Filesystem\FilesystemAdapter;
@@ -48,6 +49,9 @@ class ConvertDxfToSvg implements ShouldQueue
                 'conversion_notes' => $mirrorUrl ? 'SVG mirror saved to ' . $mirrorUrl : null,
                 'is_active' => true,
             ]);
+            
+            // Create base floor plan layer if it doesn't exist
+            $this->createBaseLayer($map, $filesystem->url($svgPath));
         } catch (Throwable $exception) {
             Log::error('DXF conversion failed', [
                 'map_id' => $map->id,
@@ -98,5 +102,43 @@ class ConvertDxfToSvg implements ShouldQueue
 
             return null;
         }
+    }
+
+    private function createBaseLayer(Map $map, string $svgUrl): void
+    {
+        // Check if base layer already exists
+        $existingLayer = MapLayer::where('map_id', $map->id)
+            ->where('key', 'floor-plan')
+            ->first();
+
+        if ($existingLayer) {
+            // Update existing layer with new SVG path
+            $existingLayer->update([
+                'data_source' => [
+                    'svg_path' => $svgUrl,
+                    'type' => 'svg_overlay',
+                ],
+            ]);
+            return;
+        }
+
+        // Create new base layer
+        MapLayer::create([
+            'map_id' => $map->id,
+            'key' => 'floor-plan',
+            'display_name' => 'Floor Plan',
+            'layer_type' => 'svg_overlay',
+            'z_index' => 0,
+            'default_visible' => true,
+            'style_preset' => [
+                'group_label' => 'Base Layers',
+                'description' => 'Building floor plan from DXF import',
+                'opacity' => 1,
+            ],
+            'data_source' => [
+                'svg_path' => $svgUrl,
+                'type' => 'svg_overlay',
+            ],
+        ]);
     }
 }

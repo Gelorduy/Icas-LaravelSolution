@@ -1,9 +1,10 @@
 <script setup>
-import { ref } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
 import StyleClass from 'primevue/styleclass';
 
 const vStyleclass = StyleClass;
+const page = usePage();
 
 const props = defineProps({
   expanded: {
@@ -38,8 +39,10 @@ const isSubmenuOpen = (itemKey) => {
   return openSubmenus.value.includes(itemKey);
 };
 
+const allowedSidebarItems = computed(() => page.props.permissions?.allowedSidebarMenuItems || []);
+
 // All menu items with icons and optional submenus
-const menuItems = ref([
+const allMenuItems = ref([
   {
     key: 'dashboard',
     label: 'Dashboard',
@@ -97,12 +100,6 @@ const menuItems = ref([
     ],
   },
   {
-    key: 'users',
-    label: 'User Management',
-    icon: 'pi pi-users',
-    route: 'users.index'
-  },
-  {
     key: 'devices',
     label: 'Devices',
     icon: 'pi pi-tablet',
@@ -122,9 +119,24 @@ const menuItems = ref([
       { key: 'settings-general', label: 'General Settings', icon: 'pi pi-cog', route: 'settings.general' },
       { key: 'settings-security', label: 'Security', icon: 'pi pi-shield', route: 'settings.security' },
       { key: 'settings-notifications', label: 'Notifications', icon: 'pi pi-bell', route: 'settings.notifications' },
+      { key: 'settings-users', label: 'Users', icon: 'pi pi-users', route: 'admin.users.index' },
+      { key: 'settings-roles', label: 'Roles', icon: 'pi pi-shield', route: 'admin.roles.index' },
     ],
   },
 ]);
+
+const menuItems = computed(() => {
+  return allMenuItems.value.filter(item => allowedSidebarItems.value.includes(item.key)).map(item => {
+    // Filter submenu items based on permissions
+    if (item.items && item.items.length > 0) {
+      return {
+        ...item,
+        items: item.items.filter(subItem => allowedSidebarItems.value.includes(subItem.key))
+      };
+    }
+    return item;
+  });
+});
 
 const navigateTo = (item) => {
   if (item.route) {

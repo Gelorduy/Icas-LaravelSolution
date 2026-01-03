@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import MapToolbar from '@/Components/Map/MapToolbar.vue';
 import MapMenu from '@/Components/Map/MapMenu.vue';
 import ViewportNavigator from '@/Components/Map/ViewportNavigator.vue';
@@ -9,9 +10,25 @@ import MapCanvas from '@/Components/Map/MapCanvas.vue';
 import { useMapStore } from '@/Stores/mapStore';
 
 const mapStore = useMapStore();
+const page = usePage();
+
+const allowedMenuItems = computed(() => page.props.permissions?.allowedMapMenuItems || []);
+
+const getDefaultMenuKey = () => {
+  // Prefer 'layers' if manifest is ready and user has access
+  if (mapStore.manifest && allowedMenuItems.value.includes('layers')) {
+    return 'layers';
+  }
+  // Fall back to 'import' if available
+  if (allowedMenuItems.value.includes('import')) {
+    return 'import';
+  }
+  // Otherwise, use first allowed item
+  return allowedMenuItems.value[0] || 'layers';
+};
 
 const manifestReady = computed(() => !!mapStore.manifest && !mapStore.error);
-const activeMenuKey = ref(mapStore.manifest ? 'layers' : 'import');
+const activeMenuKey = ref(getDefaultMenuKey());
 const menuCollapsed = ref(false);
 const overlayOpen = ref(true);
 
@@ -68,9 +85,12 @@ const canRenderActivePanel = computed(() => {
 const activeOverlayMeta = computed(() => overlayMetadata[activeMenuKey.value] ?? defaultOverlayMeta);
 
 const handleMenuSelection = (key) => {
-  activeMenuKey.value = key;
-  overlayOpen.value = true;
-  menuCollapsed.value = false;
+  // Only allow selection if user has permission for this menu item
+  if (allowedMenuItems.value.includes(key)) {
+    activeMenuKey.value = key;
+    overlayOpen.value = true;
+    menuCollapsed.value = false;
+  }
 };
 
 const collapseMenu = () => {
@@ -86,8 +106,17 @@ const closeOverlay = () => {
 };
 
 watch(manifestReady, (ready) => {
-  if (!ready) {
+  if (!ready && allowedMenuItems.value.includes('import')) {
     activeMenuKey.value = 'import';
+  } else if (ready && allowedMenuItems.value.includes('layers')) {
+    activeMenuKey.value = 'layers';
+  }
+});
+
+// Watch for changes in allowed items and reset to default if current key is not allowed
+watch(allowedMenuItems, (items) => {
+  if (!items.includes(activeMenuKey.value)) {
+    activeMenuKey.value = getDefaultMenuKey();
   }
 });
 </script>
@@ -98,7 +127,7 @@ watch(manifestReady, (ready) => {
       <div class="relative h-full min-h-[520px] overflow-hidden rounded-3xl">
         <MapCanvas class="h-full" />
 
-        <div class="absolute left-1/2 top-6 z-20 -translate-x-1/2">
+        <div class="absolute right-6 top-6 z-20">
           <transition
             enter-active-class="duration-200 ease-out"
             enter-from-class="opacity-0 -translate-y-2"
