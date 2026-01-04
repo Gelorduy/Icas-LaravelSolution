@@ -143,8 +143,33 @@ const getLayerOpacity = (layer) => layer.style_preset?.opacity ?? 1;
 const getOverlayPath = (layer) => layer.data_source?.svg_path ?? layer.data_source?.url;
 const getGeoFeatures = (layer) => layer.data_source?.features ?? [];
 const getDevices = (layer) => layer.data_source?.devices ?? [];
+const getLayerElements = (layer) => mapStore.layerElements[layer.id] ?? [];
 const deviceFill = (device) => (device.status === 'critical' ? '#ef4444' : '#38bdf8');
 const deviceRadius = (device) => (device.status === 'critical' ? 12 : 8);
+
+const getIconClass = (iconValue) => {
+  const iconMap = {
+    'fire-alarm': 'pi-bolt',
+    'exit': 'pi-sign-out',
+    'camera': 'pi-camera',
+    'sensor': 'pi-eye',
+    'door': 'pi-box',
+    'window': 'pi-window-maximize'
+  };
+  return iconMap[iconValue] || 'pi-image';
+};
+
+const getIconColor = (iconValue) => {
+  const colorMap = {
+    'fire-alarm': '#ef4444',
+    'exit': '#22c55e',
+    'camera': '#3b82f6',
+    'sensor': '#a855f7',
+    'door': '#f59e0b',
+    'window': '#06b6d4'
+  };
+  return colorMap[iconValue] || '#3b82f6';
+};
 
 onMounted(() => {
   applyViewportToViewBox();
@@ -233,6 +258,86 @@ watch(() => mapStore.pan, applyViewportToViewBox, { deep: true });
               />
             </g>
           </template>
+
+          <!-- Render layer elements (from layer editor) -->
+          <g v-if="getLayerElements(layer).length > 0">
+            <template v-for="element in getLayerElements(layer)" :key="element.id">
+              <!-- Text elements -->
+              <text
+                v-if="element.type === 'text'"
+                :x="element.x"
+                :y="element.y"
+                class="fill-white"
+                font-size="16"
+                font-weight="500"
+              >
+                {{ element.content }}
+              </text>
+
+              <!-- Marker elements (circles) -->
+              <circle
+                v-if="element.type === 'marker'"
+                :cx="element.x"
+                :cy="element.y"
+                r="10"
+                class="fill-blue-500"
+                opacity="0.9"
+              />
+
+              <!-- SVG Icon elements -->
+              <g v-if="element.type === 'svg_icon'">
+                <rect
+                  :x="element.x - 16"
+                  :y="element.y - 16"
+                  width="32"
+                  height="32"
+                  :fill="getIconColor(element.icon)"
+                  rx="4"
+                  opacity="0.9"
+                />
+                <foreignObject
+                  :x="element.x - 12"
+                  :y="element.y - 12"
+                  width="24"
+                  height="24"
+                >
+                  <div xmlns="http://www.w3.org/1999/xhtml" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                    <i :class="`pi ${getIconClass(element.icon)} text-white`" style="font-size: 18px;"></i>
+                  </div>
+                </foreignObject>
+              </g>
+
+              <!-- Polygon elements -->
+              <polygon
+                v-if="element.type === 'polygon'"
+                :points="`${element.x},${element.y} ${element.x+20},${element.y} ${element.x+10},${element.y+20}`"
+                class="fill-purple-500"
+                opacity="0.7"
+              />
+
+              <!-- Line elements -->
+              <line
+                v-if="element.type === 'line'"
+                :x1="element.x"
+                :y1="element.y"
+                :x2="element.x + 50"
+                :y2="element.y"
+                class="stroke-orange-500"
+                stroke-width="3"
+                opacity="0.8"
+              />
+
+              <!-- Circle elements -->
+              <circle
+                v-if="element.type === 'circle'"
+                :cx="element.x"
+                :cy="element.y"
+                r="15"
+                class="fill-pink-500"
+                opacity="0.7"
+              />
+            </template>
+          </g>
 
           <template v-else>
             <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" fill="white" opacity="0.5">

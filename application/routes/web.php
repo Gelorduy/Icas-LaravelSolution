@@ -25,6 +25,17 @@ Route::middleware([
     
     // Map
     Route::get('/map', [SiteMapController::class, 'index'])->name('map.index');
+    Route::get('/maps/{map}/layers/{layer}/edit', function (\App\Models\Map $map, \App\Models\MapLayer $layer) {
+        $manifest = [
+            'layers' => $map->layers()->with(['parent', 'children'])->get()
+        ];
+        
+        return Inertia::render('Map/LayerEditor', [
+            'map' => $map,
+            'layer' => $layer,
+            'manifest' => $manifest,
+        ]);
+    })->name('map.layers.edit');
     
     // Alerts
     Route::prefix('alerts')->group(function () {

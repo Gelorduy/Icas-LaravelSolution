@@ -8,6 +8,11 @@ use Illuminate\Http\Request;
 
 class LayerElementController extends Controller
 {
+    public function index(MapLayer $layer)
+    {
+        return response()->json($layer->elements);
+    }
+
     public function bulkUpsert(Request $request, MapLayer $layer)
     {
         $validated = $request->validate([
@@ -18,19 +23,22 @@ class LayerElementController extends Controller
             'elements.*.state' => 'nullable|array',
         ]);
 
-        $elements = collect($validated['elements'])->map(function ($payload) use ($layer) {
-            return $layer->elements()->updateOrCreate(
-                [
-                    'element_type' => $payload['element_type'],
-                    'geometry' => $payload['geometry'],
-                ],
-                [
-                    'payload' => $payload['payload'] ?? null,
-                    'state' => $payload['state'] ?? null,
-                ]
-            );
+        // Delete all existing elements for this layer
+        $layer->elements()->delete();
+
+        // Create new elements
+        $elements = collect($validated['elements'])->map(function ($elementData) use ($layer) {
+            return $layer->elements()->create([
+                'element_type' => $elementData['element_type'],
+                'geometry' => $elementData['geometry'],
+                'payload' => $elementData['payload'] ?? null,
+                'state' => $elementData['state'] ?? null,
+            ]);
         });
 
-        return response()->json($elements);
+        return response()->json([
+            'message' => 'Elements saved successfully',
+            'elements' => $elements
+        ]);
     }
 }

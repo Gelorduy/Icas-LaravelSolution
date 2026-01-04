@@ -24,6 +24,7 @@ export const useMapStore = defineStore('map-store', {
     activeViewportId: null,
     layerVisibility: {},
     userLayerOverrides: {},
+    layerElements: {}, // Track elements for each layer: { layerId: [elements] }
   }),
   getters: {
     selectedSite(state) {
@@ -172,12 +173,41 @@ export const useMapStore = defineStore('map-store', {
       }
       this.applyLayerVisibility();
     },
-    toggleLayerVisibility(layerOrKey) {
-      const key = typeof layerOrKey === 'string' ? layerOrKey : layerIdentifier(layerOrKey);
+    async toggleLayerVisibility(layerOrKey) {
+      const layer = typeof layerOrKey === 'string' 
+        ? this.manifest?.layers?.find(l => layerIdentifier(l) === layerOrKey)
+        : layerOrKey;
+      const key = layerIdentifier(layer);
       const current = this.layerVisibility[key] ?? true;
       const next = !current;
       this.userLayerOverrides = { ...this.userLayerOverrides, [key]: next };
       this.layerVisibility = { ...this.layerVisibility, [key]: next };
+      
+      // Load elements when layer becomes visible
+      if (next && layer?.id && !this.layerElements[layer.id]) {
+        await this.loadLayerElements(layer.id);
+      }
+    },
+    async loadLayerElements(layerId) {
+      try {
+        const response = await axios.get(`/api/layers/${layerId}/elements`);
+        if (response.data && Array.isArray(response.data)) {
+          // Transform database elements to canvas format
+          const elements = response.data.map(dbElement => ({
+            id: dbElement.id,
+            type: dbElement.element_type,
+            x: dbElement.geometry.x,
+            y: dbElement.geometry.y,
+            content: dbElement.payload?.content || null,
+            icon: dbElement.payload?.icon || null,
+          }));
+          this.layerElements = { ...this.layerElements, [layerId]: elements };
+        }
+      } catch (error) {
+        console.error('Failed to load layer elements:', error);
+        // Set empty array to prevent repeated failed attempts
+        this.layerElements = { ...this.layerElements, [layerId]: [] };
+      }
     },
     adjustZoom(delta) {
       const next = Math.min(5, Math.max(0.2, (this.zoom ?? 1) + delta));
