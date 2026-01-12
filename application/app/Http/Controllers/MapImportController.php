@@ -23,7 +23,7 @@ class MapImportController extends Controller
             'blueprint' => [
                 'required',
                 'file',
-                'mimes:dxf,dfx',
+                'mimes:dxf,dfx,svg',
                 'max:51200',
             ],
             'filename' => ['nullable', 'string', 'max:255'],
@@ -32,6 +32,52 @@ class MapImportController extends Controller
         /** @var UploadedFile $file */
         $file = $validated['blueprint'];
         $disk = config('maps.storage_disk', 'public');
+        $filesystem = Storage::disk($disk);
+        $extension = strtolower($file->getClientOriginalExtension());
+        
+        // Determine if this is an SVG or DXF file
+        $isSvg = $extension === 'svg';
+        
+        if ($isSvg) {
+            // For SVG files, store directly in the renders directory
+            $renderDirectory = config('maps.svg_output_path', 'maps/renders');
+            $filename = uniqid('map_', true) . '.svg';
+            
+            // Ensure directory exists
+            if (!$filesystem->exists($renderDirectory)) {
+                $filesystem->makeDirectory($renderDirectory, 0755, true);
+            }
+            
+            $path = $file->storeAs($renderDirectory, $filename, $disk);
+            
+            if (! $path) {
+                throw ValidationException::withMessages([
+                    'blueprint' => 'Unable to store uploaded SVG file.',
+                ]);
+            }
+
+            $map = Map::create([
+                'site_id' => $site->id,
+                'name' => $validated['filename'] ?? $file->getClientOriginalName() ?? 'Imported Map',
+                'slug' => uniqid('map_', true),
+                'svg_asset_path' => $filesystem->url($path),
+                'source_dxf_path' => null,
+                'conversion_status' => 'completed',
+                'conversion_notes' => 'SVG imported directly without conversion',
+                'is_active' => true,
+            ]);
+            
+            // Create base layer for SVG import
+            $this->createBaseLayer($map, $filesystem->url($path));
+            
+            return response()->json([
+                'message' => 'SVG map imported successfully.',
+                'map_id' => $map->id,
+                'map' => $map->fresh(),
+            ], 201);
+        }
+        
+        // For DXF files, use the existing conversion process
         $path = $file->store(config('maps.dxf_upload_path', 'maps/uploads'), $disk);
 
         if (! $path) {
@@ -50,6 +96,7 @@ class MapImportController extends Controller
             'conversion_notes' => null,
             'is_active' => false,
         ]);
+        
         try {
             ConvertDxfToSvg::dispatchSync($map);
             $map->refresh();
@@ -62,5 +109,28 @@ class MapImportController extends Controller
             'map_id' => $map->id,
             'map' => $map->fresh(),
         ], 201);
+    }
+    
+    /**
+     * Create a base floor plan layer for the imported map
+     */
+    private function createBaseLayer(Map $map, string $svgUrl): void
+    {
+        $map->layers()->create([
+            'key' => 'floor-plan',
+            'display_name' => 'Floor Plan',
+            'layer_type' => 'svg_overlay',
+            'z_index' => 0,
+            'default_visible' => true,
+            'style_preset' => [
+                'group_label' => 'Base Layers',
+                'description' => 'Building floor plan from imported file',
+                'opacity' => 1,
+            ],
+            'data_source' => [
+                'svg_path' => $svgUrl,
+                'type' => 'svg_overlay',
+            ],
+        ]);
     }
 }

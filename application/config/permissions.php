@@ -20,6 +20,7 @@ return [
                 'map.actions',
                 'map.layers',
                 'map.viewports',
+                'map.maps',
                 'map.options',
                 'sidebar.dashboard',
                 'sidebar.map',
@@ -34,6 +35,7 @@ return [
             'permissions' => [
                 'map.layers',
                 'map.viewports',
+                'map.maps',
                 'sidebar.dashboard',
                 'sidebar.map',
                 'sidebar.alerts',
@@ -45,6 +47,7 @@ return [
             'permissions' => [
                 'map.layers',
                 'map.viewports',
+                'map.maps',
                 'sidebar.dashboard',
                 'sidebar.map',
             ],
@@ -67,6 +70,7 @@ return [
         'tools' => 'map.tools',
         'layers' => 'map.layers',
         'viewports' => 'map.viewports',
+        'maps' => 'map.maps',
         'import' => 'map.import',
     ],
 

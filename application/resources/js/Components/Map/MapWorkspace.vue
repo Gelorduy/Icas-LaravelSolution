@@ -5,7 +5,8 @@ import MapToolbar from '@/Components/Map/MapToolbar.vue';
 import MapMenu from '@/Components/Map/MapMenu.vue';
 import ViewportNavigator from '@/Components/Map/ViewportNavigator.vue';
 import LayerTogglePanel from '@/Components/Map/LayerTogglePanel.vue';
-import DxfImportPanel from '@/Components/Map/DxfImportPanel.vue';
+import MapImportPanel from '@/Components/Map/MapImportPanel.vue';
+import MapSelectorPanel from '@/Components/Map/MapSelectorPanel.vue';
 import MapCanvas from '@/Components/Map/MapCanvas.vue';
 import { useMapStore } from '@/Stores/mapStore';
 
@@ -32,7 +33,7 @@ const activeMenuKey = ref(getDefaultMenuKey());
 const menuCollapsed = ref(false);
 const overlayOpen = ref(true);
 
-const manifestOptionalPanels = new Set(['import']);
+const manifestOptionalPanels = new Set(['import', 'maps']);
 
 const overlayMetadata = {
   actions: {
@@ -59,9 +60,13 @@ const overlayMetadata = {
     title: 'Viewport Navigator',
     description: 'Jump across curated perspectives and saved patrol routes.'
   },
+  maps: {
+    title: 'Map Selection',
+    description: 'Switch between available facility maps for the selected site.'
+  },
   import: {
-    title: 'DXF Import',
-    description: 'Upload facility DXF/DFX files and convert them to SVG layers.'
+    title: 'Map Import',
+    description: 'Upload facility DXF/DFX or SVG files to create new maps.'
   }
 };
 
@@ -160,11 +165,6 @@ watch(allowedMenuItems, (items) => {
             <i class="pi pi-bars text-base" />
           </button>
         </div>
-        <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.35em] text-surface-500 dark:text-surface-300">
-          <DxfImportPanel
-            class="max-h-[360px] overflow-y-auto rounded-3xl border border-surface-200 bg-white/70 shadow-inner dark:border-surface-600 dark:bg-surface-900/70"
-          />
-        </div>
 
         <transition
           enter-active-class="duration-200 ease-out"
@@ -197,11 +197,15 @@ watch(allowedMenuItems, (items) => {
               v-show="canRenderActivePanel && activeMenuKey === 'viewports'"
               class="max-h-[360px] overflow-y-auto rounded-3xl border border-surface-200 bg-white/70 shadow-inner dark:border-surface-600 dark:bg-surface-900/70"
             />
+            <MapSelectorPanel
+              v-show="canRenderActivePanel && activeMenuKey === 'maps'"
+              class="max-h-[360px] overflow-y-auto rounded-3xl border border-surface-200 bg-white/70 shadow-inner dark:border-surface-600 dark:bg-surface-900/70"
+            />
             <MapToolbar
               v-show="canRenderActivePanel && activeMenuKey === 'options'"
               class="max-h-[360px] overflow-y-auto rounded-3xl border border-surface-200 bg-white/70 shadow-inner dark:border-surface-600 dark:bg-surface-900/70"
             />
-            <DxfImportPanel
+            <MapImportPanel
               v-show="canRenderActivePanel && activeMenuKey === 'import'"
               class="max-h-[360px] overflow-y-auto rounded-3xl border border-surface-200 bg-white/70 shadow-inner dark:border-surface-600 dark:bg-surface-900/70"
             />

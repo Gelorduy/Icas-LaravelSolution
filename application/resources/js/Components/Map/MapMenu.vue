@@ -30,7 +30,8 @@ const allMenuTabs = [
   { key: 'tools', label: 'Tools' },
   { key: 'layers', label: 'Layers' },
   { key: 'viewports', label: 'ViewPorts' },
-  { key: 'import', label: 'Import DXF' }
+  { key: 'maps', label: 'Maps' },
+  { key: 'import', label: 'Import Map' }
 ];
 
 const allowedMenuItems = computed(() => page.props.permissions?.allowedMapMenuItems || []);

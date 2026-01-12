@@ -21,7 +21,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/maps/{map}/layers/{layer}', [MapLayerController::class, 'update']);
     Route::delete('/maps/{map}/layers/{layer}', [MapLayerController::class, 'destroy']);
     Route::post('/maps/{map}/layers/{layer}/toggle', [MapLayerController::class, 'toggleVisibility']);
-    Route::post('/sites/{site}/maps/import-dxf', [MapImportController::class, 'store'])->name('api.maps.import-dxf');
+    Route::post('/sites/{site}/maps/import-map', [MapImportController::class, 'store'])->name('api.maps.import-map');
 
     Route::get('/layers/{layer}/elements', [LayerElementController::class, 'index']);
     Route::post('/layers/{layer}/elements', [LayerElementController::class, 'bulkUpsert']);
