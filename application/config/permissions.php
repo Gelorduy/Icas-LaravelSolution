@@ -22,6 +22,7 @@ return [
                 'map.viewports',
                 'map.maps',
                 'map.options',
+                'map.delete',
                 'sidebar.dashboard',
                 'sidebar.map',
                 'sidebar.alerts',
@@ -72,6 +73,7 @@ return [
         'viewports' => 'map.viewports',
         'maps' => 'map.maps',
         'import' => 'map.import',
+        'delete' => 'map.delete',
     ],
 
     /*

@@ -71,6 +71,33 @@ def render_svg(
   ctx = RenderContext(doc)
   source_layout = resolve_layout(doc, layout_name)
 
+  # Debug: Print layer information
+  print(f"=== DXF Layer Information ===", file=sys.stderr)
+  print(f"Total layers in document: {len(list(doc.layers))}", file=sys.stderr)
+  for layer in doc.layers:
+    print(f"  - Layer: '{layer.dxf.name}' (Color: {layer.dxf.color}, Frozen: {layer.is_frozen()}, Locked: {layer.is_locked()})", file=sys.stderr)
+  
+  # Debug: Print entity information by layer
+  print(f"\n=== Layout Entity Information ===", file=sys.stderr)
+  print(f"Layout: {layout_name}", file=sys.stderr)
+  entity_count_by_layer = {}
+  entity_types_by_layer = {}
+  
+  for entity in source_layout:
+    layer_name = entity.dxf.layer if hasattr(entity.dxf, 'layer') else 'UNKNOWN'
+    entity_type = entity.dxftype()
+    
+    entity_count_by_layer[layer_name] = entity_count_by_layer.get(layer_name, 0) + 1
+    
+    if layer_name not in entity_types_by_layer:
+      entity_types_by_layer[layer_name] = {}
+    entity_types_by_layer[layer_name][entity_type] = entity_types_by_layer[layer_name].get(entity_type, 0) + 1
+  
+  for layer_name in sorted(entity_count_by_layer.keys()):
+    print(f"  Layer '{layer_name}': {entity_count_by_layer[layer_name]} entities", file=sys.stderr)
+    for entity_type, count in sorted(entity_types_by_layer[layer_name].items()):
+      print(f"    - {entity_type}: {count}", file=sys.stderr)
+
   backend = svg.SVGBackend()
   backend.set_background(background)
 
@@ -78,9 +105,83 @@ def render_svg(
   layout_props.set_colors(background, default_line)
 
   frontend = Frontend(ctx, backend)
-  frontend.draw_layout(source_layout, finalize=True, layout_properties=layout_props)
+  
+  # Try to render and catch any errors
+  print(f"\n=== Starting Rendering ===", file=sys.stderr)
+  try:
+    frontend.draw_layout(source_layout, finalize=True, layout_properties=layout_props)
+    print(f"Rendering completed successfully", file=sys.stderr)
+  except Exception as render_error:
+    print(f"ERROR during rendering: {render_error}", file=sys.stderr)
+    # Try layer-by-layer to identify the problem
+    print(f"\n=== Attempting Layer-by-Layer Rendering to Identify Problem ===", file=sys.stderr)
+    
+    # Group entities by layer
+    entities_by_layer = {}
+    for entity in source_layout:
+      layer_name = entity.dxf.layer if hasattr(entity.dxf, 'layer') else 'UNKNOWN'
+      if layer_name not in entities_by_layer:
+        entities_by_layer[layer_name] = []
+      entities_by_layer[layer_name].append(entity)
+    
+    failed_layers = []
+    successful_layers = []
+    
+    # Test each layer separately by creating a new backend/frontend
+    for layer_name, entities in sorted(entities_by_layer.items()):
+      print(f"Testing layer '{layer_name}' ({len(entities)} entities)...", file=sys.stderr)
+      try:
+        test_backend = svg.SVGBackend()
+        test_backend.set_background(background)
+        test_frontend = Frontend(ctx, test_backend)
+        
+        for entity in entities:
+          test_frontend.draw_entity(entity)
+        
+        print(f"  ✓ Layer '{layer_name}' OK", file=sys.stderr)
+        successful_layers.append(layer_name)
+      except Exception as layer_error:
+        print(f"  ✗ ERROR in layer '{layer_name}': {layer_error}", file=sys.stderr)
+        failed_layers.append((layer_name, str(layer_error)))
+    
+    print(f"\n=== Layer Test Summary ===", file=sys.stderr)
+    print(f"Successful layers: {len(successful_layers)}", file=sys.stderr)
+    print(f"Failed layers: {len(failed_layers)}", file=sys.stderr)
+    if failed_layers:
+      print(f"\nFAILED LAYERS TO FIX IN LibreCAD:", file=sys.stderr)
+      for layer_name, error in failed_layers:
+        print(f"  - {layer_name}: {error}", file=sys.stderr)
+    
+    raise
 
-  svg_page = drawing_layout.Page(0, 0, units=drawing_layout.Units.mm)
+  # Calculate actual bounds from the drawing extents
+  width = 1920  # Default fallback
+  height = 1080  # Default fallback
+  
+  print(f"\n=== Calculating Dimensions ===", file=sys.stderr)
+  try:
+    extents = source_layout.get_extents()
+    print(f"Extents valid: {extents.is_valid if extents else 'None'}", file=sys.stderr)
+    if extents and extents.is_valid:
+      print(f"Extents: min={extents.extmin}, max={extents.extmax}, size={extents.size}", file=sys.stderr)
+      calc_width = abs(extents.size.x)
+      calc_height = abs(extents.size.y)
+      print(f"Calculated dimensions: {calc_width} x {calc_height}", file=sys.stderr)
+      
+      # Only use calculated dimensions if they're reasonable (> 1 unit)
+      if calc_width > 1:
+        width = calc_width
+      if calc_height > 1:
+        height = calc_height
+      print(f"Final dimensions: {width} x {height}", file=sys.stderr)
+  except Exception as e:
+    # Log the error but continue with defaults
+    print(f"Warning: Could not calculate extents: {e}", file=sys.stderr)
+    print(f"Using default dimensions: {width} x {height}", file=sys.stderr)
+
+  print(f"\n=== Creating SVG Page ===", file=sys.stderr)
+  print(f"Page dimensions: {width} x {height} mm", file=sys.stderr)
+  svg_page = drawing_layout.Page(width, height, units=drawing_layout.Units.mm)
   return backend.get_string(svg_page)
 
 

@@ -1,16 +1,72 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+import axios from 'axios';
 import { useMapStore } from '@/Stores/mapStore';
+import DeleteMapModal from '@/Components/Map/DeleteMapModal.vue';
 
 const mapStore = useMapStore();
+const page = usePage();
 
 const selectedSite = computed(() => mapStore.selectedSite);
 const availableMaps = computed(() => selectedSite.value?.maps || []);
 const selectedMapId = computed(() => mapStore.selectedMapId);
+const userPermissions = computed(() => page.props.permissions?.allowedMapMenuItems || []);
+const canDeleteMap = computed(() => userPermissions.value.includes('delete'));
+
+const deleteModalVisible = ref(false);
+const mapToDelete = ref(null);
+const deleting = ref(false);
+const errorMessage = ref('');
 
 const handleMapSelect = (mapId) => {
   if (mapId !== selectedMapId.value) {
     mapStore.selectMap(mapId);
+  }
+};
+
+const showDeleteModal = (map, event) => {
+  event.stopPropagation();
+  mapToDelete.value = map;
+  deleteModalVisible.value = true;
+  errorMessage.value = '';
+};
+
+const handleDeleteConfirm = async () => {
+  if (!mapToDelete.value) return;
+
+  deleting.value = true;
+  errorMessage.value = '';
+
+  try {
+    await axios.delete(
+      route('api.maps.delete', { 
+        site: selectedSite.value.id, 
+        map: mapToDelete.value.id 
+      })
+    );
+
+    // Remove map from store
+    const updatedMaps = availableMaps.value.filter(m => m.id !== mapToDelete.value.id);
+    mapStore.selectedSite.maps = updatedMaps;
+
+    // If deleted map was selected, select first available map or clear selection
+    if (selectedMapId.value === mapToDelete.value.id) {
+      if (updatedMaps.length > 0) {
+        mapStore.selectMap(updatedMaps[0].id);
+      } else {
+        mapStore.selectedMapId = null;
+        mapStore.manifest = null;
+      }
+    }
+
+    deleteModalVisible.value = false;
+    mapToDelete.value = null;
+  } catch (error) {
+    console.error('Delete error:', error);
+    errorMessage.value = error.response?.data?.message || 'Failed to delete map. Please try again.';
+  } finally {
+    deleting.value = false;
   }
 };
 
@@ -122,22 +178,32 @@ const getMapStatusLabel = (map) => {
               </p>
             </div>
 
-            <!-- Active Indicator -->
-            <div
-              v-if="map.is_active"
-              class="flex-shrink-0"
-            >
-              <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">
+            <!-- Right Side Actions -->
+            <div class="flex flex-col items-end gap-2 flex-shrink-0">
+              <!-- Active Indicator -->
+              <span
+                v-if="map.is_active"
+                class="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300"
+              >
                 Active
               </span>
-            </div>
-            <div
-              v-else
-              class="flex-shrink-0"
-            >
-              <span class="inline-flex items-center rounded-full bg-surface-100 px-2 py-1 text-xs font-medium text-surface-600 dark:bg-surface-700 dark:text-surface-300">
+              <span
+                v-else
+                class="inline-flex items-center rounded-full bg-surface-100 px-2 py-1 text-xs font-medium text-surface-600 dark:bg-surface-700 dark:text-surface-300"
+              >
                 Inactive
               </span>
+
+              <!-- Delete Button -->
+              <button
+                v-if="canDeleteMap"
+                type="button"
+                @click="showDeleteModal(map, $event)"
+                class="rounded p-1.5 text-surface-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                title="Delete map"
+              >
+                <i class="pi pi-trash text-sm" />
+              </button>
             </div>
           </div>
         </button>
@@ -157,5 +223,24 @@ const getMapStatusLabel = (map) => {
         Import a map to get started
       </p>
     </div>
+
+    <!-- Error Message -->
+    <div
+      v-if="errorMessage"
+      class="rounded-lg bg-red-50 p-4 dark:bg-red-900/20"
+    >
+      <p class="text-sm font-medium text-red-800 dark:text-red-200">
+        {{ errorMessage }}
+      </p>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <DeleteMapModal
+      v-model:visible="deleteModalVisible"
+      :map-name="mapToDelete?.name || ''"
+      :loading="deleting"
+      @confirm="handleDeleteConfirm"
+    />
   </div>
 </template>
+

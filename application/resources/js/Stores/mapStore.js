@@ -137,6 +137,9 @@ export const useMapStore = defineStore('map-store', {
         const viewport = this.activeViewport;
         this.zoom = viewport?.default_zoom ?? 1;
         this.pan = viewport?.default_pan ?? { x: 0, y: 0 };
+
+        // Load elements for all visible layers
+        await this.loadVisibleLayerElements();
       } catch (error) {
         console.error(error);
         this.error = 'Unable to load map data.';
@@ -208,6 +211,15 @@ export const useMapStore = defineStore('map-store', {
         // Set empty array to prevent repeated failed attempts
         this.layerElements = { ...this.layerElements, [layerId]: [] };
       }
+    },
+    async loadVisibleLayerElements() {
+      // Load elements for all currently visible layers
+      const visibleLayers = this.visibleLayers;
+      const loadPromises = visibleLayers
+        .filter(layer => layer.id && !this.layerElements[layer.id])
+        .map(layer => this.loadLayerElements(layer.id));
+      
+      await Promise.all(loadPromises);
     },
     adjustZoom(delta) {
       const next = Math.min(5, Math.max(0.2, (this.zoom ?? 1) + delta));

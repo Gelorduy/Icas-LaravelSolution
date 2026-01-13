@@ -19,15 +19,25 @@ class MapImportController extends Controller
             abort(403);
         }
 
-        $validated = $request->validate([
-            'blueprint' => [
-                'required',
-                'file',
-                'mimes:dxf,dfx,svg',
-                'max:51200',
-            ],
+        $request->validate([
+            'blueprint' => ['required', 'file', 'max:51200'],
             'filename' => ['nullable', 'string', 'max:255'],
         ]);
+
+        $file = $request->file('blueprint');
+        $extension = strtolower($file->getClientOriginalExtension());
+        
+        // Validate file extension
+        if (!in_array($extension, ['dxf', 'dfx', 'svg'])) {
+            throw ValidationException::withMessages([
+                'blueprint' => 'The file must be a DXF, DFX, or SVG file.',
+            ]);
+        }
+
+        $validated = [
+            'blueprint' => $file,
+            'filename' => $request->input('filename'),
+        ];
 
         /** @var UploadedFile $file */
         $file = $validated['blueprint'];
@@ -132,5 +142,39 @@ class MapImportController extends Controller
                 'type' => 'svg_overlay',
             ],
         ]);
+    }
+
+    /**
+     * Delete a map and all associated layers, viewports, and elements
+     */
+    public function destroy(Request $request, Site $site, Map $map)
+    {
+        if (! $request->user()) {
+            abort(403);
+        }
+
+        // Verify map belongs to site
+        if ($map->site_id !== $site->id) {
+            abort(404);
+        }
+
+        // Delete associated layer elements first
+        foreach ($map->layers as $layer) {
+            $layer->elements()->delete();
+        }
+
+        // Delete layers
+        $map->layers()->delete();
+
+        // Delete viewports
+        $map->viewports()->delete();
+
+        // Delete the map itself
+        $mapName = $map->name;
+        $map->delete();
+
+        return response()->json([
+            'message' => "Map '{$mapName}' has been deleted successfully.",
+        ], 200);
     }
 }

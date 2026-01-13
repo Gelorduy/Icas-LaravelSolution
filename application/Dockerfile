@@ -11,6 +11,12 @@ RUN pip3 install --break-system-packages --no-cache-dir \
 # Install Redis extension
 RUN pecl install redis && docker-php-ext-enable redis
 
+# Configure PHP upload limits for DXF/SVG files
+RUN echo "upload_max_filesize = 100M" > /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "post_max_size = 100M" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "max_execution_time = 300" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini
+
 # composer binary (optional; will be mounted/used in dev)
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
